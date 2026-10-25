@@ -1,8 +1,8 @@
 # ==============================================================================
-# QuantBet AI - Stack 100% Autocontenido para Docker / Dockhand
+# QuantBet AI - Stack Autocontenido con Docker Compose
 # ==============================================================================
 # Este archivo es completamente independiente y portable a cualquier servidor
-# o equipo remoto con Docker instalado.
+# o entorno local con Docker instalado.
 #
 # Para desplegar en local o servidor:
 #   docker compose up -d --build

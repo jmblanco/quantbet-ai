@@ -28,7 +28,7 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Acciones rápidas: `Auto-IA` y `Blindar Trampas`.
   - Dock flotante persistente con cálculo en vivo de costes, reducciones, porcentaje de ahorro y descarga directa del `.QUI`.
   - Modal educativo interactivo con desglose del método matemático.
-- **Infraestructura Autocontenida (Docker Compose & Dockhand)**:
+- **Infraestructura Autocontenida (Docker Compose)**:
   - Configuración Docker Compose 100% independiente para ejecución local.
   - Imagen Frontend con Nginx Alpine que sirve la SPA y actúa como reverse proxy hacia la API en un único puerto (`8080`).
   - Imagen Backend con inicialización automática de base de datos (`prisma db push`) y auto-seed.
