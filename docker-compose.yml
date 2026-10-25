@@ -1,6 +1,21 @@
+# ==============================================================================
+# QuantBet AI - Stack 100% Autocontenido para Docker / Dockhand
+# ==============================================================================
+# Este archivo es completamente independiente y portable a cualquier servidor
+# o equipo remoto con Docker instalado.
+#
+# Para desplegar en local o servidor:
+#   docker compose up -d --build
+#
+# Puerto por defecto de acceso a la plataforma: http://<IP-O-HOST>:8080
+# ==============================================================================
+
 version: '3.8'
 
 services:
+  # ----------------------------------------------------------------------------
+  # 1. Base de Datos Relacional: PostgreSQL 16 Alpine
+  # ----------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
     container_name: quiniela_postgres
@@ -9,30 +24,95 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-quiniela_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quiniela_secret_pass}
       POSTGRES_DB: ${POSTGRES_DB:-quiniela_db}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - quiniela_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quiniela_user} -d ${POSTGRES_DB:-quiniela_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  # ----------------------------------------------------------------------------
+  # 2. Servidor de Caché en Memoria RAM: Valkey 8.0 Alpine
+  # ----------------------------------------------------------------------------
   valkey:
     image: valkey/valkey:8.0-alpine
     container_name: quiniela_valkey
     restart: unless-stopped
-    ports:
-      - "${VALKEY_PORT:-6379}:6379"
     volumes:
       - valkey_data:/data
+    networks:
+      - quiniela_network
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
 
+  # ----------------------------------------------------------------------------
+  # 3. API & Motor Matemático: Node.js 22 + Fastify + Prisma + Dixon-Coles
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile
+    image: quantbet-backend:latest
+    container_name: quiniela_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3333
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://${POSTGRES_USER:-quiniela_user}:${POSTGRES_PASSWORD:-quiniela_secret_pass}@postgres:5432/${POSTGRES_DB:-quiniela_db}?schema=public
+      VALKEY_URL: redis://valkey:6379
+      AUTO_SEED: ${AUTO_SEED:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    networks:
+      - quiniela_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3333/api/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # 4. Frontend & Reverse Proxy Unificado: Vue 3 + Vite + Nginx
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+    image: quantbet-frontend:latest
+    container_name: quiniela_frontend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - quiniela_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+# Red interna privada de la aplicación (100% aislada)
+networks:
+  quiniela_network:
+    name: quiniela_network
+    driver: bridge
+
+# Volúmenes persistentes locales
 volumes:
   postgres_data:
+    name: quiniela_postgres_data
   valkey_data:
+    name: quiniela_valkey_data
