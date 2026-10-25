@@ -118,7 +118,8 @@ export function calculateExpectedValue(input: EvInput): MatchValueAnalysis {
   }
   // 4. Sorpresa Rentable / Partido de Alta Incertidumbre
   else if (maxProbVal < 0.45) {
-    const sortedByEv = (['1', 'X', '2'] as const).sort((a, b) => signs[b].evRatio - signs[a].evRatio);
+    const allSigns: Array<'1' | 'X' | '2'> = ['1', 'X', '2'];
+    const sortedByEv = [...allSigns].sort((a, b) => signs[b].evRatio - signs[a].evRatio);
     recommendedSign = [sortedByEv[0], sortedByEv[1]].sort().join('') as any;
     verdictBadge = 'SORPRESA RENTABLE';
     notes = `Partido igualado. Doble táctico de alto valor ${recommendedSign}.`;
