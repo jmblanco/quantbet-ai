@@ -1,0 +1,33 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Compilados y artefactos
+dist/
+build/
+.next/
+.nuxt/
+.output/
+
+# Entornos y secretos
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Base de datos local
+data/
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Degradados de alta tecnología y juego probabilístico -->
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+
+    <linearGradient id="amberGold" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+
+    <linearGradient id="surfaceFacet1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </linearGradient>
+
+    <linearGradient id="surfaceFacet2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#334155" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#1e293b" stop-opacity="0.9" />
+    </linearGradient>
+
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <radialGradient id="haloGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.25" />
+      <stop offset="60%" stop-color="#06b6d4" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#070b14" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Fondo Halo Cuántico -->
+  <circle cx="256" cy="256" r="240" fill="url(#haloGlow)" />
+
+  <!-- Órbitas Elípticas de Probabilidad e Inteligencia Artificial -->
+  <g filter="url(#neonGlow)">
+    <ellipse cx="256" cy="256" rx="200" ry="76" fill="none" stroke="url(#primaryGrad)" stroke-width="3" stroke-dasharray="14 10" transform="rotate(-30 256 256)" opacity="0.65" />
+    <ellipse cx="256" cy="256" rx="200" ry="76" fill="none" stroke="url(#amberGold)" stroke-width="2.5" stroke-dasharray="8 12" transform="rotate(40 256 256)" opacity="0.55" />
+  </g>
+
+  <!-- Isotipo Central: Poliedro Cuántico de Apuestas (Fusión de Icosaedro / Escudo / Cubo Isométrico) -->
+  <g transform="translate(256, 256) scale(1.15) translate(-256, -256)">
+    <!-- Faceta Superior (Estratégica / IA) -->
+    <polygon points="256,120 376,190 256,260 136,190" fill="url(#surfaceFacet1)" stroke="url(#primaryGrad)" stroke-width="4.5" stroke-linejoin="round" />
+    
+    <!-- Faceta Inferior Izquierda (Probabilidad / Datos) -->
+    <polygon points="136,190 256,260 256,400 136,330" fill="url(#surfaceFacet2)" stroke="url(#primaryGrad)" stroke-width="4.5" stroke-linejoin="round" />
+
+    <!-- Faceta Inferior Derecha (Esperanza Matemática / Oro) -->
+    <polygon points="256,260 376,190 376,330 256,400" fill="url(#surfaceFacet1)" stroke="url(#primaryGrad)" stroke-width="4.5" stroke-linejoin="round" />
+
+    <!-- Nodos Cuánticos Interiores (Pips de Dados / Neuronas de IA) -->
+    <circle cx="256" cy="190" r="8" fill="#10b981" filter="url(#neonGlow)" />
+    <circle cx="206" cy="165" r="5" fill="#06b6d4" />
+    <circle cx="306" cy="215" r="5" fill="#06b6d4" />
+
+    <circle cx="196" cy="295" r="7" fill="#06b6d4" filter="url(#neonGlow)" />
+    <circle cx="196" cy="345" r="5" fill="#3b82f6" />
+
+    <circle cx="316" cy="295" r="8" fill="#f59e0b" filter="url(#neonGlow)" />
+    <circle cx="316" cy="345" r="5" fill="#fbbf24" />
+
+    <!-- Destello Central de Acierto / Fortuna -->
+    <path d="M256,236 L262,254 L280,260 L262,266 L256,284 L250,266 L232,260 L250,254 Z" fill="url(#amberGold)" filter="url(#neonGlow)" />
+  </g>
+
+  <!-- Puntos Satélite Orbitantes (Loterías y Juegos Múltiples) -->
+  <circle cx="100" cy="170" r="7" fill="#10b981" filter="url(#neonGlow)" />
+  <circle cx="410" cy="340" r="8" fill="#f59e0b" filter="url(#neonGlow)" />
+  <circle cx="370" cy="130" r="5" fill="#06b6d4" />
+  <circle cx="130" cy="370" r="6" fill="#3b82f6" />
+</svg>

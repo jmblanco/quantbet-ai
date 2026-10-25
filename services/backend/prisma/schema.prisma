@@ -1,0 +1,118 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Juego {
+  id        String   @id @default(uuid())
+  codigo    String   @unique // QUINIELA, PRIMITIVA, BONOLOTO
+  nombre    String
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  jornadas  Jornada[]
+}
+
+model Temporada {
+  id        String    @id @default(uuid())
+  codigo    String    @unique // e.g. "2024-2025"
+  activa    Boolean   @default(true)
+  jornadas  Jornada[]
+}
+
+enum EstadoJornada {
+  PROGRAMADA
+  EN_JUEGO
+  FINALIZADA
+}
+
+model Jornada {
+  id              String        @id @default(uuid())
+  juegoId         String
+  juego           Juego         @relation(fields: [juegoId], references: [id])
+  temporadaId     String
+  temporada       Temporada     @relation(fields: [temporadaId], references: [id])
+  numero          Int
+  fechaCierre     DateTime
+  bote            Decimal?      @db.Decimal(12, 2)
+  recaudacion     Decimal?      @db.Decimal(12, 2)
+  estado          EstadoJornada @default(PROGRAMADA)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  partidos        Partido[]
+  escrutinios     Escrutinio[]
+  reducciones     ReduccionGuardada[]
+
+  @@unique([juegoId, temporadaId, numero])
+  @@index([fechaCierre])
+}
+
+model Partido {
+  id                String         @id @default(uuid())
+  jornadaId         String
+  jornada           Jornada        @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  numeroCasilla     Int            // 1 al 15 (15 es el Pleno al 15)
+  equipoLocal       String
+  equipoVisitante   String
+  fechaHora         DateTime?
+  golesLocal        Int?
+  golesVisitante    Int?
+  resultadoSigno    String?        // "1", "X", "2" (o para pleno al 15: "0-0", "1-M", etc.)
+  pctApostadoLae1   Decimal?       @db.Decimal(5, 2)
+  pctApostadoLaeX   Decimal?       @db.Decimal(5, 2)
+  pctApostadoLae2   Decimal?       @db.Decimal(5, 2)
+  createdAt         DateTime       @default(now())
+
+  predicciones      PrediccionIa[]
+
+  @@unique([jornadaId, numeroCasilla])
+}
+
+model PrediccionIa {
+  id                  String   @id @default(uuid())
+  partidoId           String
+  partido             Partido  @relation(fields: [partidoId], references: [id], onDelete: Cascade)
+  modeloVersion       String   // e.g. "dixon-coles-v1.0", "xgboost-poisson-hybrid"
+  prob1               Decimal  @db.Decimal(5, 4) // Ej: 0.5420 = 54.20%
+  probX               Decimal  @db.Decimal(5, 4)
+  prob2               Decimal  @db.Decimal(5, 4)
+  ev1                 Decimal  @db.Decimal(6, 3) // Expected Value ratio (> 1.000 es valor positivo)
+  evX                 Decimal  @db.Decimal(6, 3)
+  ev2                 Decimal  @db.Decimal(6, 3)
+  recomendacionSigno  String   // "1", "X", "2", "1X", "12", "X2", "1X2"
+  confianzaScore      Decimal  @db.Decimal(5, 2) // 0-100
+  createdAt           DateTime @default(now())
+
+  @@index([partidoId, modeloVersion])
+}
+
+model Escrutinio {
+  id             String   @id @default(uuid())
+  jornadaId      String
+  jornada        Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  categoria      String   // "15", "14", "13", "12", "11", "10", "Elige8"
+  acertantes     Int
+  premioUnitario Decimal  @db.Decimal(12, 2)
+
+  @@unique([jornadaId, categoria])
+}
+
+model ReduccionGuardada {
+  id              String   @id @default(uuid())
+  jornadaId       String
+  jornada         Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  nombre          String
+  tipoGarantia    String   // "AL_13", "AL_12", "AL_11", "DIRECTA"
+  numeroTriples   Int
+  numeroDobles    Int
+  numeroApuestas  Int
+  costeTotal      Decimal  @db.Decimal(8, 2)
+  combinaciones   Json     // Array de strings ["11X2...", "1112..."]
+  archivoQui      String   @db.Text // Formato estándar exportable de boletos
+  createdAt       DateTime @default(now())
+}
