@@ -8,6 +8,58 @@ import { processReduction, BaseBetMatch } from '../core/math/reductions.js';
 import { calculateExpectedValue } from '../core/math/expected-value.js';
 import { evaluateTeamFatigue } from '../core/math/fatigue.js';
 import { ingestHistoricalData } from '../ingestion/historical-loader.js';
+import { syncLiveQuiniela } from '../ingestion/live-quiniela-service.js';
+
+function enrichJornadaPartidos(jornada: any) {
+  const enrichedPartidos = jornada.partidos.map((partido: any) => {
+    const pred = partido.predicciones[0];
+    if (!pred) return partido;
+
+    const homeFatigue = evaluateTeamFatigue({ team: partido.equipoLocal });
+    const awayFatigue = evaluateTeamFatigue({ team: partido.equipoVisitante });
+
+    const analysis = calculateExpectedValue({
+      prob1: Number(pred.prob1),
+      probX: Number(pred.probX),
+      prob2: Number(pred.prob2),
+      pctLae1: Number(partido.pctApostadoLae1 ?? 33.3),
+      pctLaeX: Number(partido.pctApostadoLaeX ?? 33.3),
+      pctLae2: Number(partido.pctApostadoLae2 ?? 33.3)
+    });
+
+    let finalExplanation = analysis.explanation;
+    let fatigueAlert: { team: string; badgeLabel: string; notice: string } | null = null;
+
+    if (homeFatigue.hasFatigue || awayFatigue.hasFatigue) {
+      const fatigued = homeFatigue.hasFatigue ? partido.equipoLocal : partido.equipoVisitante;
+      const fObj = homeFatigue.hasFatigue ? homeFatigue : awayFatigue;
+      fatigueAlert = {
+        team: fatigued,
+        badgeLabel: fObj.badgeLabel || '⚡ FATIGA EUROPEA',
+        notice: fObj.warningNotice || ''
+      };
+      finalExplanation += ` [Factor Calendario: ${fatigued} ${fObj.warningNotice}]`;
+    }
+
+    return {
+      ...partido,
+      fatigueAlert,
+      predicciones: [
+        {
+          ...pred,
+          verdictBadge: analysis.verdictBadge,
+          explanation: finalExplanation,
+          marketConsensus: analysis.marketConsensus
+        }
+      ]
+    };
+  });
+
+  return {
+    ...jornada,
+    partidos: enrichedPartidos
+  };
+}
 
 export async function registerRoutes(app: FastifyInstance) {
   const predictionService = new PredictionService();
@@ -73,7 +125,90 @@ export async function registerRoutes(app: FastifyInstance) {
     return reply.send(jornadas);
   });
 
-  // 3. Detalle de jornada con partidos, porcentajes LAE y predicciones IA
+  // 3. Jornada actual en curso (Hero de la app)
+  app.get('/api/jornadas/actual', {
+    schema: {
+      description: 'Obtiene la jornada activa de esta semana con pronósticos completos de IA',
+      tags: ['Jornadas']
+    }
+  }, async (req, reply) => {
+    let jornada = await prisma.jornada.findFirst({
+      where: {
+        estado: { in: ['PROGRAMADA', 'EN_JUEGO'] }
+      },
+      orderBy: { fechaCierre: 'desc' },
+      include: {
+        temporada: true,
+        juego: true,
+        partidos: {
+          orderBy: { numeroCasilla: 'asc' },
+          include: {
+            predicciones: {
+              orderBy: { createdAt: 'desc' },
+              take: 1
+            }
+          }
+        }
+      }
+    });
+
+    if (!jornada || jornada.partidos.length < 15) {
+      await syncLiveQuiniela();
+      jornada = await prisma.jornada.findFirst({
+        where: { estado: { in: ['PROGRAMADA', 'EN_JUEGO'] } },
+        orderBy: { fechaCierre: 'desc' },
+        include: {
+          temporada: true,
+          juego: true,
+          partidos: {
+            orderBy: { numeroCasilla: 'asc' },
+            include: {
+              predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+            }
+          }
+        }
+      });
+    }
+
+    if (!jornada) {
+      return reply.status(404).send({ error: 'No se encontró ninguna jornada activa' });
+    }
+
+    return reply.send(enrichJornadaPartidos(jornada));
+  });
+
+  // 4. Sincronización en vivo de la jornada actual bajo demanda
+  app.post('/api/jornadas/sync-live', {
+    schema: {
+      description: 'Sincroniza en tiempo real los 15 partidos y porcentajes LAE de la jornada oficial',
+      tags: ['Jornadas']
+    }
+  }, async (req, reply) => {
+    await syncLiveQuiniela();
+    await valkey.del('cache:jornadas:list');
+
+    const jornada = await prisma.jornada.findFirst({
+      where: { estado: { in: ['PROGRAMADA', 'EN_JUEGO'] } },
+      orderBy: { fechaCierre: 'desc' },
+      include: {
+        temporada: true,
+        juego: true,
+        partidos: {
+          orderBy: { numeroCasilla: 'asc' },
+          include: {
+            predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+          }
+        }
+      }
+    });
+
+    return reply.send({
+      message: 'Jornada en curso sincronizada con éxito',
+      jornada: jornada ? enrichJornadaPartidos(jornada) : null
+    });
+  });
+
+  // 5. Detalle de jornada con partidos, porcentajes LAE y predicciones IA
   app.get('/api/jornadas/:id', {
     schema: {
       description: 'Detalle de una jornada específica con predicciones de IA y análisis EV',
@@ -110,55 +245,7 @@ export async function registerRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Jornada no encontrada' });
     }
 
-    // Enriquecer cada partido con la explicación detallada, badge de veredicto, fatiga europea y consenso de mercado
-    const enrichedPartidos = jornada.partidos.map((partido) => {
-      const pred = partido.predicciones[0];
-      if (!pred) return partido;
-
-      const homeFatigue = evaluateTeamFatigue({ team: partido.equipoLocal });
-      const awayFatigue = evaluateTeamFatigue({ team: partido.equipoVisitante });
-
-      const analysis = calculateExpectedValue({
-        prob1: Number(pred.prob1),
-        probX: Number(pred.probX),
-        prob2: Number(pred.prob2),
-        pctLae1: Number(partido.pctApostadoLae1 ?? 33.3),
-        pctLaeX: Number(partido.pctApostadoLaeX ?? 33.3),
-        pctLae2: Number(partido.pctApostadoLae2 ?? 33.3)
-      });
-
-      let finalExplanation = analysis.explanation;
-      let fatigueAlert: { team: string; badgeLabel: string; notice: string } | null = null;
-
-      if (homeFatigue.hasFatigue || awayFatigue.hasFatigue) {
-        const fatigued = homeFatigue.hasFatigue ? partido.equipoLocal : partido.equipoVisitante;
-        const fObj = homeFatigue.hasFatigue ? homeFatigue : awayFatigue;
-        fatigueAlert = {
-          team: fatigued,
-          badgeLabel: fObj.badgeLabel || '⚡ FATIGA EUROPEA',
-          notice: fObj.warningNotice || ''
-        };
-        finalExplanation += ` [Factor Calendario: ${fatigued} ${fObj.warningNotice}]`;
-      }
-
-      return {
-        ...partido,
-        fatigueAlert,
-        predicciones: [
-          {
-            ...pred,
-            verdictBadge: analysis.verdictBadge,
-            explanation: finalExplanation,
-            marketConsensus: analysis.marketConsensus
-          }
-        ]
-      };
-    });
-
-    return reply.send({
-      ...jornada,
-      partidos: enrichedPartidos
-    });
+    return reply.send(enrichJornadaPartidos(jornada));
   });
 
   // 4. Recalcular predicciones IA para una jornada

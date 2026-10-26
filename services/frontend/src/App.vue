@@ -148,6 +148,7 @@ const loading = ref(true);
 const loadingMetrics = ref(false);
 const loadingRatings = ref(false);
 const executingFeedback = ref(false);
+const syncingLive = ref(false);
 
 const teamRatings = ref<TeamRating[]>([]);
 const feedbackLogs = ref<string[]>([]);
@@ -160,7 +161,7 @@ const metricas = ref<MetricasData | null>(null);
 const selections = ref<Record<number, { 1: boolean; X: boolean; 2: boolean }>>({});
 const pleno15Selection = ref('M-1');
 const guarantee = ref<'AL_13' | 'AL_12' | 'DIRECTA'>('AL_13');
-const activePreset = ref<'economico' | 'estandar' | 'avanzado' | 'personalizado'>('estandar');
+const activePreset = ref<'optimo' | 'economico' | 'estandar' | 'avanzado' | 'personalizado'>('estandar');
 const expandedExplanations = ref<Record<number, boolean>>({});
 
 // Filtros Estadísticos Quinielísticos
@@ -319,34 +320,78 @@ const escrutinioStatus = computed(() => {
 async function fetchJornada(targetId?: string) {
   loading.value = true;
   try {
+    let data;
+    if (targetId) {
+      const res = await axios.get(`/api/jornadas/${targetId}`);
+      data = res.data;
+    } else {
+      // 1. Cargar directamente la jornada en curso / actual de esta semana
+      try {
+        const res = await axios.get('/api/jornadas/actual');
+        data = res.data;
+      } catch (e) {
+        const res = await axios.get('/api/jornadas');
+        if (res.data && res.data.length > 0) {
+          const detailRes = await axios.get(`/api/jornadas/${res.data[0].id}`);
+          data = detailRes.data;
+        }
+      }
+    }
+
+    if (data) {
+      jornada.value = data;
+      selectedJornadaId.value = data.id;
+
+      setupInitialSelections(data);
+      applyBudgetPreset('estandar');
+    }
+
+    // Cargar historial de jornadas para el selector
     const { data: jornadas } = await axios.get('/api/jornadas');
     if (jornadas && jornadas.length > 0) {
       availableJornadas.value = jornadas.slice(0, 38);
-      const active = targetId
-        ? (jornadas.find((j: any) => j.id === targetId) || jornadas[0])
-        : (jornadas.find((j: any) => j.estado === 'PROGRAMADA' || j.estado === 'EN_JUEGO') || jornadas[0]);
-      
-      selectedJornadaId.value = active.id;
-      const { data } = await axios.get(`/api/jornadas/${active.id}`);
-      jornada.value = data;
-
-      const initial: Record<number, { 1: boolean; X: boolean; 2: boolean }> = {};
-      const expInit: Record<number, boolean> = {};
-      data.partidos.forEach((p: Partido) => {
-        initial[p.numeroCasilla] = { '1': false, 'X': false, '2': false };
-        if (p.predicciones[0]?.verdictBadge === 'TRAMPA DE MASA' || p.numeroCasilla <= 2) {
-          expInit[p.numeroCasilla] = true;
-        }
-      });
-      selections.value = initial;
-      expandedExplanations.value = expInit;
-
-      applyBudgetPreset('estandar');
     }
   } catch (err) {
     console.error('Error cargando jornada:', err);
   } finally {
     loading.value = false;
+  }
+}
+
+function setupInitialSelections(jornadaData: Jornada) {
+  const initial: Record<number, { 1: boolean; X: boolean; 2: boolean }> = {};
+  const expInit: Record<number, boolean> = {};
+  jornadaData.partidos.forEach((p: Partido) => {
+    initial[p.numeroCasilla] = { '1': false, 'X': false, '2': false };
+    if (p.predicciones[0]?.verdictBadge === 'TRAMPA DE MASA' || p.numeroCasilla <= 2) {
+      expInit[p.numeroCasilla] = true;
+    }
+  });
+  selections.value = initial;
+  expandedExplanations.value = expInit;
+
+  // Pre-seleccionar Pleno al 15
+  pleno15Selection.value = 'M-1';
+}
+
+async function syncLiveOfficialData() {
+  syncingLive.value = true;
+  try {
+    const { data } = await axios.post('/api/jornadas/sync-live');
+    if (data.jornada) {
+      jornada.value = data.jornada;
+      selectedJornadaId.value = data.jornada.id;
+      setupInitialSelections(data.jornada);
+      applyBudgetPreset('estandar');
+    }
+    const { data: jornadas } = await axios.get('/api/jornadas');
+    if (jornadas && jornadas.length > 0) {
+      availableJornadas.value = jornadas.slice(0, 38);
+    }
+  } catch (err) {
+    console.error('Error sincronizando jornada en vivo:', err);
+  } finally {
+    syncingLive.value = false;
   }
 }
 
@@ -404,9 +449,27 @@ function toggleExplanation(casilla: number) {
   expandedExplanations.value[casilla] = !expandedExplanations.value[casilla];
 }
 
-function applyBudgetPreset(preset: 'economico' | 'estandar' | 'avanzado') {
+function applyBudgetPreset(preset: 'optimo' | 'economico' | 'estandar' | 'avanzado') {
   if (!jornada.value) return;
   activePreset.value = preset;
+
+  if (preset === 'optimo') {
+    // 14 Fijos puros de máxima confianza IA (0,75 €)
+    jornada.value.partidos.forEach(p => {
+      if (p.numeroCasilla === 15) return;
+      const pred = p.predicciones[0];
+      const rec = pred?.recomendacionSigno || '1';
+      const mainSign = rec[0] || '1';
+      selections.value[p.numeroCasilla] = {
+        '1': mainSign === '1',
+        'X': mainSign === 'X',
+        '2': mainSign === '2'
+      };
+    });
+    guarantee.value = 'DIRECTA';
+    calculateReduction();
+    return;
+  }
 
   const ranked = [...jornada.value.partidos]
     .filter(p => p.numeroCasilla <= 14)
@@ -426,7 +489,7 @@ function applyBudgetPreset(preset: 'economico' | 'estandar' | 'avanzado') {
     })
     .sort((a, b) => b.uncertainty - a.uncertainty);
 
-  let doblesCount = 3;
+  let doblesCount = 4;
   if (preset === 'economico') doblesCount = 1;
   else if (preset === 'estandar') doblesCount = 4;
   else if (preset === 'avanzado') doblesCount = 7;
@@ -472,6 +535,12 @@ function applyBudgetPreset(preset: 'economico' | 'estandar' | 'avanzado') {
       };
     }
   });
+
+  if (preset === 'economico') {
+    guarantee.value = 'DIRECTA';
+  } else {
+    guarantee.value = 'AL_13';
+  }
 
   calculateReduction();
 }
@@ -645,25 +714,37 @@ onMounted(() => {
 
         <!-- Navegación de Vistas y Acciones de Cabecera -->
         <div class="flex items-center justify-between md:justify-end gap-2.5">
-          <!-- Pestañas Principales -->
+          <!-- Pestañas Principales: Foco en la Semana en Curso -->
           <nav class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
             <button
               @click="activeTab = 'boleto'"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer"
               :class="activeTab === 'boleto' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-slate-200'"
             >
-              <Layers class="h-3.5 w-3.5" />
-              Boleto & Reductor
+              <Target class="h-3.5 w-3.5" />
+              Quiniela de Esta Semana
+              <span class="ml-1 px-1.5 py-0.2 rounded bg-slate-950/40 text-[9px] text-emerald-950 font-black">ACTIVA</span>
             </button>
             <button
               @click="activeTab = 'metricas'"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer"
               :class="activeTab === 'metricas' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-slate-200'"
             >
-              <BarChart3 class="h-3.5 w-3.5" />
-              Métricas & Auditoría
+              <Cpu class="h-3.5 w-3.5" />
+              Motor Matemático & Auditoría
             </button>
           </nav>
+
+          <!-- Botón de Sincronización en Vivo con Loterías -->
+          <button
+            @click="syncLiveOfficialData"
+            :disabled="syncingLive"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-slate-800 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
+            title="Sincronizar en tiempo real los 15 partidos y porcentajes oficiales"
+          >
+            <RotateCcw class="h-3.5 w-3.5" :class="syncingLive ? 'animate-spin' : ''" />
+            <span class="hidden sm:inline">{{ syncingLive ? 'Sincronizando...' : 'Actualizar En Vivo' }}</span>
+          </button>
 
           <!-- Botón de Metodología Modal -->
           <button
@@ -715,15 +796,15 @@ onMounted(() => {
     </section>
 
     <main class="max-w-7xl mx-auto px-4 mt-5 space-y-6">
-      <!-- PESTAÑA 1: BOLETO & REDUCCIONES -->
+      <!-- PESTAÑA 1: BOLETO DE ESTA SEMANA (HERO PRINCIPAL) -->
       <div v-if="activeTab === 'boleto'">
         <div v-if="loading" class="flex flex-col items-center justify-center py-28 text-slate-400">
           <div class="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p class="text-sm font-medium">Ejecutando modelos bivariados de Dixon-Coles y matrices de valor...</p>
+          <p class="text-sm font-medium">Cargando jornada actual y ejecutando modelos de Poisson y Dixon-Coles...</p>
         </div>
 
         <div v-else class="space-y-6">
-          <!-- HERO PANEL: VALUE PROPOSITION, JORNADA ACTIVA Y PRESUPUESTOS -->
+          <!-- HERO PANEL: BOLETO RELLENADO POR IA PARA ESTA SEMANA -->
           <section class="glass-panel rounded-2xl p-6 shadow-2xl relative overflow-hidden border border-slate-800">
             <div class="absolute -right-16 -top-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -left-16 -bottom-16 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -731,9 +812,13 @@ onMounted(() => {
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-800/80">
               <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
+                  <span class="px-2.5 py-0.5 text-xs font-black rounded-lg bg-emerald-500 text-slate-950 flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
+                    <CheckCircle2 class="h-3.5 w-3.5" />
+                    BOLETO RELLENADO POR IA
+                  </span>
                   <span class="px-2.5 py-0.5 text-xs font-extrabold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
                     <Clock class="h-3.5 w-3.5 animate-pulse" />
-                    JORNADA EN CURSO
+                    JORNADA {{ jornada?.numero }} EN CURSO
                   </span>
                   <span v-if="fatiguedMatchesCount > 0" class="px-2.5 py-0.5 text-xs font-bold rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
                     <Zap class="h-3.5 w-3.5 text-amber-400 animate-pulse" />
@@ -743,16 +828,16 @@ onMounted(() => {
                 </div>
 
                 <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                  Jornada {{ jornada?.numero }}
+                  Quiniela de Esta Semana (Jornada {{ jornada?.numero }})
                   <span class="text-slate-600 text-xl font-normal">|</span>
                   <span class="text-amber-400 font-extrabold text-2xl flex items-center gap-1.5">
                     <Coins class="h-6 w-6 text-amber-400" />
-                    {{ Number(jornada?.bote || 2500000).toLocaleString('es-ES') }} € en Bote
+                    {{ Number(jornada?.bote || 305500).toLocaleString('es-ES') }} € en Bote
                   </span>
                 </h2>
 
                 <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                  Supera al bote con <strong>análisis asimétrico de valor (Expected Value)</strong>: detectamos cuándo la masa popular sobre-apuesta a un grande y blindamos tu boleto con reducciones matemáticas oficiales.
+                  Pronóstico óptimo generado automáticamente mediante modelos bivariados de <strong>Dixon-Coles</strong> y matrices de <strong>Expected Value (EV)</strong>. Los 15 partidos ya están pronosticados: elige tu presupuesto, ajusta signos si lo deseas y descarga el boleto oficial <code>.QUI</code> listo para validar.
                 </p>
               </div>
 
@@ -761,40 +846,54 @@ onMounted(() => {
                 <div class="flex items-center justify-between text-xs text-slate-400">
                   <span class="font-semibold text-slate-300 flex items-center gap-1.5">
                     <SlidersHorizontal class="h-3.5 w-3.5 text-emerald-400" />
-                    Ajustar por Presupuesto:
+                    Estrategia / Presupuesto:
                   </span>
                   <span class="text-[10px] text-slate-500 font-mono">0.75 € / ap.</span>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-4 gap-1.5">
+                  <button
+                    @click="applyBudgetPreset('optimo')"
+                    class="px-2.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer border flex flex-col items-center gap-0.5"
+                    :class="activePreset === 'optimo' 
+                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-500/25' 
+                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850'"
+                    title="14 Fijos puros de máxima confianza IA"
+                  >
+                    <span>0.75 €</span>
+                    <span class="text-[9px] font-medium opacity-80">14 Fijos</span>
+                  </button>
                   <button
                     @click="applyBudgetPreset('economico')"
-                    class="px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer border flex flex-col items-center gap-0.5"
+                    class="px-2.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer border flex flex-col items-center gap-0.5"
                     :class="activePreset === 'economico' 
                       ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-500/25' 
                       : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850'"
+                    title="1 Doble de valor en el partido más incierto"
                   >
                     <span>1.50 €</span>
-                    <span class="text-[10px] font-medium opacity-80">2 Apuestas</span>
+                    <span class="text-[9px] font-medium opacity-80">1 Doble</span>
                   </button>
                   <button
                     @click="applyBudgetPreset('estandar')"
-                    class="px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer border flex flex-col items-center gap-0.5"
+                    class="px-2.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer border flex flex-col items-center gap-0.5"
                     :class="activePreset === 'estandar' 
                       ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-500/25' 
                       : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850'"
+                    title="4 Dobles reducidos al 13 (Recomendado por la IA)"
                   >
                     <span>3.00 €</span>
-                    <span class="text-[10px] font-medium opacity-80">4 Ap. (IA Top)</span>
+                    <span class="text-[9px] font-medium opacity-80">4 Dobles</span>
                   </button>
                   <button
                     @click="applyBudgetPreset('avanzado')"
-                    class="px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer border flex flex-col items-center gap-0.5"
+                    class="px-2.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer border flex flex-col items-center gap-0.5"
                     :class="activePreset === 'avanzado' 
                       ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-500/25' 
                       : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850'"
+                    title="7 Dobles reducidos al 13 (-87.5% de ahorro)"
                   >
-                    <span>9.00 €</span>
-                    <span class="text-[10px] font-medium opacity-80">12 Apuestas</span>
+                    <span>12.00 €</span>
+                    <span class="text-[9px] font-medium opacity-80">7 Dobles</span>
                   </button>
                 </div>
               </div>
@@ -1381,20 +1480,25 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- PESTAÑA 2: MÉTRICAS & ESTADÍSTICAS GLOBALES -->
+      <!-- PESTAÑA 2: MÉTRICAS & ESTADÍSTICAS GLOBALES (MOTOR DE FONDO) -->
       <div v-else class="space-y-6">
         <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">MOTOR DE CÁLCULO DE FONDO</span>
+            </div>
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <BarChart3 class="h-5 w-5 text-emerald-400" />
-              Panel de Métricas, Calibración & Auditoría Cuantitativa
+              <Cpu class="h-5 w-5 text-emerald-400" />
+              Motor Matemático, Calibración & Auditoría Cuantitativa
             </h2>
-            <p class="text-xs text-slate-400">Auditoría del modelo Dixon-Coles, efectividad de Expected Value (EV), retroalimentación online y distribuciones históricas.</p>
+            <p class="text-xs text-slate-300 mt-1 max-w-3xl">
+              Estos modelos predictivos (Dixon-Coles bivariado, Poisson con corrección de empates &tau;, factores de fatiga europea y matrices de valor esperado) se ejecutan de forma continua en segundo plano para generar y fundamentar las predicciones del boleto de la jornada en curso.
+            </p>
           </div>
           <button
             @click="fetchMetricas"
             :disabled="loadingMetrics"
-            class="self-start md:self-auto px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-200 border border-slate-800 flex items-center gap-2 cursor-pointer transition"
+            class="self-start md:self-auto px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-200 border border-slate-800 flex items-center gap-2 cursor-pointer transition shrink-0"
           >
             <RotateCcw class="h-3.5 w-3.5" :class="{ 'animate-spin': loadingMetrics }" />
             Actualizar Métricas

@@ -7,6 +7,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [1.0.0] - 2026-10-25
 
 ### Añadido
+- **Pronóstico Activo de la Semana en Curso (Experiencia Central)**:
+  - Carga automática y pre-rellenado inmediato del boleto oficial de La Quiniela con la recomendación óptima calculada por la IA para los 15 partidos activos.
+  - Sincronizador en vivo (`LiveQuinielaService`) con fuentes oficiales de loterías para obtener los 15 partidos reales, bote en juego y porcentajes de apuesta de SELAE.
+  - Botón de sincronización manual bajo demanda (`POST /api/jornadas/sync-live`) y endpoint dedicado de jornada activa (`GET /api/jornadas/actual`).
+  - Presets de presupuesto instantáneo: 14 Fijos Directos (0,75 €), Económico (1 Doble - 1,50 €), Estándar IA (4 Dobles con reducción al 13 - 3,00 €) y Avanzado (7 Dobles / -87.5% de ahorro).
+  - Reposicionamiento de métricas históricas, calibración Brier y retroalimentación bayesiana como panel transparente de fondo ("Motor Matemático") al servicio del pronosticador principal.
 - **Motor Matemático e IA**:
   - Modelo de Dixon-Coles y distribución Poisson bivariada para estimar probabilidades de 1X2 y marcadores exactos.
   - Cálculo de Expected Value ($EV$) contrastando probabilidad de la IA frente a porcentajes de apuestas oficiales de SELAE.
