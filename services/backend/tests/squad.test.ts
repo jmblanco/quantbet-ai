@@ -2,25 +2,27 @@ import { describe, it, expect } from 'vitest';
 import { SquadService } from '../src/core/sports/squad-service.js';
 
 describe('SquadService & Tactical Intelligence', () => {
-  it('debe devolver la alineación y plantilla canónica para el Real Madrid', () => {
+  it('debe devolver la alineación y plantilla canónica para el Real Madrid 2026-2027 bajo José Mourinho', () => {
     const squad = SquadService.getTeamSquad('Real Madrid');
     expect(squad.equipo).toBe('Real Madrid');
     expect(squad.sistema).toBe('4-3-3');
-    expect(squad.entrenador).toBe('Carlo Ancelotti');
+    expect(squad.entrenador).toBe('José Mourinho');
     expect(squad.titulares).toHaveLength(11);
     expect(squad.titulares.some(p => p.nombre === 'Vinícius Jr.')).toBe(true);
-    expect(squad.titulares.some(p => p.nombre === 'Lucas Vázquez' && p.dorsal === 17)).toBe(true);
+    expect(squad.titulares.some(p => p.nombre === 'Trent Alexander-Arnold' && p.dorsal === 12)).toBe(true);
     expect(squad.titulares.some(p => p.posicion === 'POR')).toBe(true);
-    // Dani Carvajal es jugador del Real Madrid en baja médica
-    expect(squad.bajas.some(b => b.jugador === 'Dani Carvajal' && b.tipo === 'LESION')).toBe(true);
+    // Lucas Vázquez ya no pertenece a la plantilla del Real Madrid
+    expect(squad.titulares.some(p => p.nombre === 'Lucas Vázquez')).toBe(false);
+    expect(squad.suplentesDestacados.includes('Lucas Vázquez')).toBe(false);
   });
 
-  it('debe reflejar la plantilla real del Getafe CF con Juan Iglesias en el lateral derecho y sin Carvajal', () => {
+  it('debe reflejar a Dani Carvajal como titular activo en el Getafe CF (no lesionado)', () => {
     const squad = SquadService.getTeamSquad('Getafe');
     expect(squad.equipo).toBe('Getafe');
     expect(squad.entrenador).toBe('José Bordalás');
-    expect(squad.titulares.some(p => p.nombre === 'Juan Iglesias' && p.dorsal === 21)).toBe(true);
-    expect(squad.titulares.some(p => p.nombre === 'Dani Carvajal')).toBe(false); // Carvajal no pertenece al Getafe
+    expect(squad.titulares.some(p => p.nombre === 'Dani Carvajal' && p.dorsal === 14)).toBe(true);
+    // Dani Carvajal está activo en el Getafe, no lesionado
+    expect(squad.bajas.some(b => b.jugador === 'Dani Carvajal')).toBe(false);
   });
 
   it('debe devolver la alineación canónica de FC Barcelona con Iñaki Peña y Lamine Yamal', () => {

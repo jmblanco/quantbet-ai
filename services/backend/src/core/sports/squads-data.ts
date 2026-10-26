@@ -14,10 +14,10 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   // ==========================================================================
   'Real Madrid': {
     sistema: '4-3-3',
-    entrenador: 'Carlo Ancelotti',
+    entrenador: 'José Mourinho',
     titulares: [
       { nombre: 'Thibaut Courtois', dorsal: 1, posicion: 'POR', esClave: true },
-      { nombre: 'Lucas Vázquez', dorsal: 17, posicion: 'DEF', esClave: true },
+      { nombre: 'Trent Alexander-Arnold', dorsal: 12, posicion: 'DEF', esClave: true },
       { nombre: 'Éder Militão', dorsal: 3, posicion: 'DEF', esClave: true },
       { nombre: 'Antonio Rüdiger', dorsal: 22, posicion: 'DEF', esClave: true },
       { nombre: 'Ferland Mendy', dorsal: 23, posicion: 'DEF' },
@@ -28,11 +28,10 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
       { nombre: 'Kylian Mbappé', dorsal: 9, posicion: 'DEL', esClave: true },
       { nombre: 'Vinícius Jr.', dorsal: 7, posicion: 'DEL', esClave: true }
     ],
-    suplentes: ['Andriy Lunin', 'Jesús Vallejo', 'Raúl Asencio', 'Fran García', 'Eduardo Camavinga', 'Luka Modrić', 'Dani Ceballos', 'Arda Güler', 'Brahim Díaz', 'Endrick'],
+    suplentes: ['Andriy Lunin', 'Raúl Asencio', 'Fran García', 'Eduardo Camavinga', 'Luka Modrić', 'Dani Ceballos', 'Arda Güler', 'Brahim Díaz', 'Endrick'],
     bajasHabituales: [
-      { jugador: 'Dani Carvajal', posicion: 'DEF', tipo: 'LESION', motivo: 'Rotura de ligamento cruzado anterior, colateral externo y tendón poplíteo', gravedad: 'CRITICA', esClave: true, tiempoEstimado: 'Baja de larga duración' },
-      { jugador: 'David Alaba', posicion: 'DEF', tipo: 'LESION', motivo: 'Fase de readaptación funcional tras rotura de ligamento cruzado anterior', gravedad: 'MODERADA', esClave: true, tiempoEstimado: 'Baja médica' },
-      { jugador: 'Eduardo Camavinga', posicion: 'MED', tipo: 'DUDA', motivo: 'Sobrecarga muscular leve', gravedad: 'LEVE', esClave: false }
+      { jugador: 'David Alaba', posicion: 'DEF', tipo: 'LESION', motivo: 'Fase de readaptación funcional tras lesión articular', gravedad: 'MODERADA', esClave: true, tiempoEstimado: 'Baja médica' },
+      { jugador: 'Eduardo Camavinga', posicion: 'MED', tipo: 'DUDA', motivo: 'Sobrecarga muscular leve en el sóleo', gravedad: 'LEVE', esClave: false }
     ]
   },
   'Barcelona': {
@@ -259,7 +258,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
     entrenador: 'José Bordalás',
     titulares: [
       { nombre: 'David Soria', dorsal: 13, posicion: 'POR', esClave: true },
-      { nombre: 'Juan Iglesias', dorsal: 21, posicion: 'DEF', esClave: true },
+      { nombre: 'Dani Carvajal', dorsal: 14, posicion: 'DEF', esClave: true },
       { nombre: 'Djené Dakonam', dorsal: 2, posicion: 'DEF', esCapitan: true, esClave: true },
       { nombre: 'Omar Alderete', dorsal: 15, posicion: 'DEF', esClave: true },
       { nombre: 'Diego Rico', dorsal: 16, posicion: 'DEF' },
@@ -270,7 +269,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
       { nombre: 'Borja Mayoral', dorsal: 9, posicion: 'DEL', esClave: true },
       { nombre: 'Bertuğ Yıldırım', dorsal: 10, posicion: 'DEL' }
     ],
-    suplentes: ['Jiří Letáček', 'Allan Nyom', 'Juan Berrocal', 'Fabrizio Angileri', 'Ramón Terrats', 'Jesús Santiago Yellu', 'Álex Sola', 'Peter Federico', 'Álvaro Rodríguez', 'Alberto Risco'],
+    suplentes: ['Jiří Letáček', 'Juan Iglesias', 'Allan Nyom', 'Juan Berrocal', 'Fabrizio Angileri', 'Ramón Terrats', 'Jesús Santiago Yellu', 'Álex Sola', 'Peter Federico', 'Álvaro Rodríguez', 'Alberto Risco'],
     bajasHabituales: [
       { jugador: 'Borja Mayoral', posicion: 'DEL', tipo: 'DUDA', motivo: 'Gestión de cargas tras molestias en la rodilla', gravedad: 'MODERADA', esClave: true, tiempoEstimado: 'Duda de última hora' },
       { jugador: 'Juan Berrocal', posicion: 'DEF', tipo: 'DUDA', motivo: 'Sobrecarga muscular', gravedad: 'LEVE', esClave: false }
