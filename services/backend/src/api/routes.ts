@@ -12,6 +12,7 @@ import { syncLiveQuiniela } from '../ingestion/live-quiniela-service.js';
 import { SquadService } from '../core/sports/squad-service.js';
 import { HeatmapService } from '../core/sports/heatmap-service.js';
 import { TeamsDirectoryService } from '../core/sports/teams-directory-service.js';
+import { QueueManager, QUEUE_NAMES } from '../infrastructure/queue-manager.js';
 
 async function enrichJornadaPartidos(jornada: any) {
   const enrichedPartidos = await Promise.all(jornada.partidos.map(async (partido: any) => {
@@ -514,24 +515,121 @@ export async function registerRoutes(app: FastifyInstance) {
     return reply.send(metrics);
   });
 
-  // 7. Disparar Ingesta Masiva del Histórico
+  // 7. Disparar Ingesta Masiva del Histórico a través de BullMQ
   app.post('/api/ingesta/historico', {
     schema: {
-      description: 'Descarga e ingesta temporadas históricas reales con partidos y predicciones IA',
-      tags: ['Ingesta']
+      description: 'Encola la descarga e ingesta de temporadas históricas en la cola BullMQ',
+      tags: ['Ingesta', 'Colas']
     }
   }, async (req, reply) => {
-    // Ejecutar en background o sincrónico
-    ingestHistoricalData().then(async () => {
-      await valkey.del('cache:metricas:global');
-      await valkey.del('cache:jornadas:list');
-    }).catch(err => {
-      console.error('Error en ingesta histórica asíncrona:', err);
-    });
+    const job = await QueueManager.getInstance().dispatchJob(
+      QUEUE_NAMES.HISTORICAL_INGEST,
+      'ingest-historical-season',
+      { initiatedAt: new Date().toISOString() }
+    );
 
+    return reply.status(202).send({
+      success: true,
+      message: 'Ingesta masiva del histórico encolada en BullMQ con éxito.',
+      jobId: job.id,
+      queue: QUEUE_NAMES.HISTORICAL_INGEST
+    });
+  });
+
+  // ==========================================================================
+  // 8. GESTIÓN Y OBSERVABILIDAD DE COLAS BULLMQ & WORKERS
+  // ==========================================================================
+
+  // 8.1. Estado y Métricas de todas las Colas
+  app.get('/api/queues/status', {
+    schema: {
+      description: 'Obtiene las métricas en tiempo real de las 5 colas de BullMQ (waiting, active, completed, failed, delayed)',
+      tags: ['Colas']
+    }
+  }, async (req, reply) => {
+    const status = await QueueManager.getInstance().getQueuesStatus();
     return reply.send({
       success: true,
-      message: 'Ingesta masiva del histórico iniciada con éxito en segundo plano.'
+      timestamp: new Date().toISOString(),
+      queues: status
+    });
+  });
+
+  // 8.2. Disparar Job bajo demanda en cualquier cola
+  app.post('/api/queues/:queueKey/dispatch', {
+    schema: {
+      description: 'Encola un trabajo manual en una de las colas BullMQ (sync-live, tactical-refresh, bayesian-feedback, squad-audit, historical-ingest)',
+      tags: ['Colas'],
+      params: z.object({
+        queueKey: z.string()
+      }),
+      body: z.object({
+        jobName: z.string().optional(),
+        payload: z.record(z.any()).optional()
+      }).optional()
+    }
+  }, async (req, reply) => {
+    const { queueKey } = req.params as { queueKey: string };
+    const body = (req.body as any) || {};
+
+    // Mapear alias a nombres canónicos
+    let targetQueue: string | undefined;
+    for (const [k, v] of Object.entries(QUEUE_NAMES)) {
+      if (v === queueKey || k.toLowerCase() === queueKey.toLowerCase() || v.endsWith(queueKey)) {
+        targetQueue = v;
+        break;
+      }
+    }
+
+    if (!targetQueue) {
+      return reply.status(400).send({
+        error: `Cola '${queueKey}' no válida. Opciones disponibles: ${Object.values(QUEUE_NAMES).join(', ')}`
+      });
+    }
+
+    const job = await QueueManager.getInstance().dispatchJob(
+      targetQueue,
+      body.jobName || 'manual-dispatch',
+      body.payload || {}
+    );
+
+    return reply.status(202).send({
+      success: true,
+      message: `Trabajo encolado exitosamente en ${targetQueue}`,
+      jobId: job.id,
+      queue: targetQueue
+    });
+  });
+
+  // 8.3. Pausar o reanudar una cola
+  app.post('/api/queues/:queueKey/pause', {
+    schema: {
+      description: 'Pausa o reanuda una cola BullMQ',
+      tags: ['Colas'],
+      params: z.object({ queueKey: z.string() }),
+      body: z.object({ pause: z.boolean() })
+    }
+  }, async (req, reply) => {
+    const { queueKey } = req.params as { queueKey: string };
+    const { pause } = (req.body as any) || { pause: true };
+
+    let targetQueue: string | undefined;
+    for (const [k, v] of Object.entries(QUEUE_NAMES)) {
+      if (v === queueKey || k.toLowerCase() === queueKey.toLowerCase() || v.endsWith(queueKey)) {
+        targetQueue = v;
+        break;
+      }
+    }
+
+    if (!targetQueue) {
+      return reply.status(400).send({ error: `Cola no válida` });
+    }
+
+    const isPaused = await QueueManager.getInstance().toggleQueuePause(targetQueue, pause);
+    return reply.send({
+      success: true,
+      queue: targetQueue,
+      isPaused
     });
   });
 }

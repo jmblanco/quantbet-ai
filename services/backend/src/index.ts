@@ -4,6 +4,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import dotenv from 'dotenv';
 import { registerRoutes } from './api/routes.js';
+import { QueueManager } from './infrastructure/queue-manager.js';
 
 dotenv.config();
 
@@ -45,6 +46,20 @@ async function bootstrap() {
 
   // Registrar Rutas de la API
   await registerRoutes(app);
+
+  // Inicializar Colas Asíncronas BullMQ & Workers en Valkey
+  await QueueManager.getInstance().initialize();
+
+  // Graceful shutdown
+  const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];
+  for (const signal of signals) {
+    process.on(signal, async () => {
+      console.log(`\nRecibido ${signal}, cerrando servidor y colas BullMQ...`);
+      await QueueManager.getInstance().closeAll();
+      await app.close();
+      process.exit(0);
+    });
+  }
 
   try {
     await app.listen({ port, host });
