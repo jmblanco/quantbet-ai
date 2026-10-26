@@ -24,6 +24,7 @@ import TicketScreen from './components/TicketScreen.vue';
 import LiveScreen from './components/LiveScreen.vue';
 import ReductionsScreen from './components/ReductionsScreen.vue';
 import AnalyticsScreen from './components/AnalyticsScreen.vue';
+import TeamsScreen from './components/TeamsScreen.vue';
 import MethodologyModal from './components/MethodologyModal.vue';
 
 interface Prediccion {
@@ -158,8 +159,8 @@ interface Jornada {
   };
 }
 
-// 4 Pantallas principales según intención de usuario
-type ScreenTab = 'boleto' | 'live' | 'reducciones' | 'metricas';
+// 5 Pantallas principales según intención de usuario
+type ScreenTab = 'boleto' | 'live' | 'equipos' | 'reducciones' | 'metricas';
 const activeTab = ref<ScreenTab>('boleto');
 
 const showMethodologyModal = ref(false);
@@ -583,6 +584,14 @@ onMounted(async () => {
           </button>
 
           <button
+            @click="activeTab = 'equipos'"
+            :class="activeTab === 'equipos' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
+            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>🛡️ Clubes & Táctica</span>
+          </button>
+
+          <button
             @click="activeTab = 'reducciones'"
             :class="activeTab === 'reducciones' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
             class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
@@ -639,6 +648,13 @@ onMounted(async () => {
           class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
         >
           🔴 En Vivo
+        </button>
+        <button
+          @click="activeTab = 'equipos'"
+          :class="activeTab === 'equipos' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
+          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+        >
+          🛡️ Clubes
         </button>
         <button
           @click="activeTab = 'reducciones'"
@@ -713,7 +729,12 @@ onMounted(async () => {
           @syncLive="syncLiveQuiniela"
         />
 
-        <!-- PANTALLA 3: LABORATORIO DE REDUCCIONES -->
+        <!-- PANTALLA 3: DIRECTORIO DE CLUBES, MAPAS DE CALOR & TÁCTICA -->
+        <TeamsScreen
+          v-else-if="activeTab === 'equipos'"
+        />
+
+        <!-- PANTALLA 4: LABORATORIO DE REDUCCIONES -->
         <ReductionsScreen
           v-else-if="activeTab === 'reducciones'"
           :guarantee="guarantee"

@@ -71,66 +71,63 @@ const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
     entrenador: 'Carlo Ancelotti',
     titulares: [
       { nombre: 'Thibaut Courtois', dorsal: 1, posicion: 'POR', esClave: true },
-      { nombre: 'Lucas Vázquez', dorsal: 17, posicion: 'DEF' },
+      { nombre: 'Trent Alexander-Arnold', dorsal: 12, posicion: 'DEF', esClave: true },
       { nombre: 'Éder Militão', dorsal: 3, posicion: 'DEF', esClave: true },
       { nombre: 'Antonio Rüdiger', dorsal: 22, posicion: 'DEF', esClave: true },
       { nombre: 'Ferland Mendy', dorsal: 23, posicion: 'DEF' },
       { nombre: 'Federico Valverde', dorsal: 8, posicion: 'MED', esClave: true, esCapitan: true },
-      { nombre: 'Eduardo Camavinga', dorsal: 6, posicion: 'MED' },
+      { nombre: 'Aurélien Tchouaméni', dorsal: 14, posicion: 'MED' },
       { nombre: 'Jude Bellingham', dorsal: 5, posicion: 'MED', esClave: true },
       { nombre: 'Rodrygo Goes', dorsal: 11, posicion: 'DEL' },
-      { nombre: 'Kylian Mbappé', dorsal: 9, posicion: 'DEL', esClave: true },
+      { nombre: 'Kylian Mbappé', dorsal: 10, posicion: 'DEL', esClave: true },
       { nombre: 'Vinícius Jr.', dorsal: 7, posicion: 'DEL', esClave: true }
     ],
-    suplentes: ['Lunin', 'Fran García', 'Modrić', 'Tchouaméni', 'Arda Güler', 'Endrick', 'Brahim Díaz'],
+    suplentes: ['Lunin', 'Raúl Asencio', 'Dean Huijsen', 'Marc Cucurella', 'Eduardo Camavinga', 'Arda Güler', 'Endrick', 'Brahim Díaz'],
     bajasHabituales: [
-      { jugador: 'Dani Carvajal', posicion: 'DEF', tipo: 'LESION', motivo: 'Rotura ligamento cruzado anterior', gravedad: 'CRITICA', esClave: true, tiempoEstimado: 'Baja toda la temporada' },
-      { jugador: 'David Alaba', posicion: 'DEF', tipo: 'LESION', motivo: 'Fase final recuperación rodilla', gravedad: 'MODERADA', esClave: false, tiempoEstimado: 'Baja médica' }
+      { jugador: 'David Alaba', posicion: 'DEF', tipo: 'DUDA', motivo: 'Sobrecarga muscular en el sóleo', gravedad: 'LEVE', esClave: false, tiempoEstimado: 'Duda de última hora' }
     ]
   },
   'Barcelona': {
     sistema: '4-2-3-1',
     entrenador: 'Hansi Flick',
     titulares: [
-      { nombre: 'Iñaki Peña', dorsal: 13, posicion: 'POR' },
+      { nombre: 'Joan Garcia', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Jules Koundé', dorsal: 23, posicion: 'DEF', esClave: true },
-      { nombre: 'Pau Cubarsí', dorsal: 2, posicion: 'DEF', esClave: true },
-      { nombre: 'Íñigo Martínez', dorsal: 5, posicion: 'DEF' },
+      { nombre: 'Pau Cubarsí', dorsal: 5, posicion: 'DEF', esClave: true },
+      { nombre: 'Eric Garcia', dorsal: 24, posicion: 'DEF' },
       { nombre: 'Alejandro Balde', dorsal: 3, posicion: 'DEF' },
-      { nombre: 'Marc Casadó', dorsal: 17, posicion: 'MED' },
+      { nombre: 'Frenkie de Jong', dorsal: 21, posicion: 'MED' },
       { nombre: 'Pedri González', dorsal: 8, posicion: 'MED', esClave: true },
-      { nombre: 'Lamine Yamal', dorsal: 19, posicion: 'DEL', esClave: true },
+      { nombre: 'Lamine Yamal', dorsal: 10, posicion: 'DEL', esClave: true },
       { nombre: 'Dani Olmo', dorsal: 20, posicion: 'MED', esClave: true },
       { nombre: 'Raphinha Belloli', dorsal: 11, posicion: 'DEL', esClave: true, esCapitan: true },
-      { nombre: 'Robert Lewandowski', dorsal: 9, posicion: 'DEL', esClave: true }
+      { nombre: 'Gabriel Jesus', dorsal: 9, posicion: 'DEL', esClave: true }
     ],
-    suplentes: ['Szczęsny', 'Fort', 'Eric García', 'Frenkie de Jong', 'Gavi', 'Fermín López', 'Pau Víctor', 'Ansu Fati'],
+    suplentes: ['Szczęsny', 'João Cancelo', 'Andreas Christensen', 'Gavi', 'Fermín López', 'Marc Bernal', 'Karim Adeyemi', 'Anthony Gordon'],
     bajasHabituales: [
-      { jugador: 'Marc-André ter Stegen', posicion: 'POR', tipo: 'LESION', motivo: 'Rotura tendón rotuliano rodilla', gravedad: 'CRITICA', esClave: true, tiempoEstimado: 'Baja temporada' },
-      { jugador: 'Ronald Araújo', posicion: 'DEF', tipo: 'LESION', motivo: 'Lesión tendón isquiotibial', gravedad: 'MODERADA', esClave: true, tiempoEstimado: 'En recuperación' },
-      { jugador: 'Marc Bernal', posicion: 'MED', tipo: 'LESION', motivo: 'Rotura de ligamento cruzado', gravedad: 'MODERADA', esClave: false }
+      { jugador: 'Andreas Christensen', posicion: 'DEF', tipo: 'DUDA', motivo: 'Molestias en el tendón de Aquiles', gravedad: 'LEVE', esClave: false, tiempoEstimado: 'Pendiente de evolución' },
+      { jugador: 'Marc Bernal', posicion: 'MED', tipo: 'ROTACION', motivo: 'Reincorporación progresiva', gravedad: 'LEVE', esClave: false }
     ]
   },
   'At. Madrid': {
-    sistema: '3-5-2',
+    sistema: '4-4-2',
     entrenador: 'Diego Pablo Simeone',
     titulares: [
       { nombre: 'Jan Oblak', dorsal: 13, posicion: 'POR', esClave: true },
-      { nombre: 'Nahuel Molina', dorsal: 16, posicion: 'DEF' },
-      { nombre: 'Axel Witsel', dorsal: 20, posicion: 'DEF' },
-      { nombre: 'José María Giménez', dorsal: 2, posicion: 'DEF', esClave: true },
-      { nombre: 'Javi Galán', dorsal: 21, posicion: 'DEF' },
-      { nombre: 'Rodrigo De Paul', dorsal: 5, posicion: 'MED' },
+      { nombre: 'Marcos Llorente', dorsal: 14, posicion: 'DEF', esClave: true },
+      { nombre: 'Robin Le Normand', dorsal: 24, posicion: 'DEF' },
+      { nombre: 'Cristian Romero', dorsal: 4, posicion: 'DEF', esClave: true },
+      { nombre: 'Dávid Hancko', dorsal: 3, posicion: 'DEF' },
+      { nombre: 'Morten Hjulmand', dorsal: 16, posicion: 'MED', esClave: true },
       { nombre: 'Koke Resurrección', dorsal: 6, posicion: 'MED', esCapitan: true },
-      { nombre: 'Conor Gallagher', dorsal: 4, posicion: 'MED' },
-      { nombre: 'Antoine Griezmann', dorsal: 7, posicion: 'DEL', esClave: true },
+      { nombre: 'Pablo Barrios', dorsal: 8, posicion: 'MED' },
+      { nombre: 'Alex Baena', dorsal: 10, posicion: 'MED', esClave: true },
       { nombre: 'Julián Álvarez', dorsal: 19, posicion: 'DEL', esClave: true },
-      { nombre: 'Alexander Sørloth', dorsal: 9, posicion: 'DEL' }
+      { nombre: 'Alexander Sørloth', dorsal: 9, posicion: 'DEL', esClave: true }
     ],
-    suplentes: ['Musso', 'Reinildo', 'Lenglet', 'Pablo Barrios', 'Rodrigo Riquelme', 'Samuel Lino', 'Ángel Correa'],
+    suplentes: ['Musso', 'Giménez', 'Grimaldo', 'Johnny Cardoso', 'Kang-In Lee', 'Ademola Lookman', 'Jonathan David', 'Giuliano Simeone'],
     bajasHabituales: [
-      { jugador: 'Robin Le Normand', posicion: 'DEF', tipo: 'DUDA', motivo: 'Traumatismo craneoencefálico con hematoma', gravedad: 'MODERADA', esClave: true, tiempoEstimado: 'Pendiente de evolución' },
-      { jugador: 'César Azpilicueta', posicion: 'DEF', tipo: 'LESION', motivo: 'Lesión muscular en el sóleo', gravedad: 'LEVE', esClave: false }
+      { jugador: 'José María Giménez', posicion: 'DEF', tipo: 'DUDA', motivo: 'Sobrecarga muscular', gravedad: 'LEVE', esClave: true, tiempoEstimado: 'Duda de última hora' }
     ]
   },
   'Athletic Club': {
@@ -308,24 +305,24 @@ const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
     ]
   },
   'Getafe': {
-    sistema: '4-2-3-1',
+    sistema: '4-4-2',
     entrenador: 'José Bordalás',
     titulares: [
       { nombre: 'David Soria', dorsal: 13, posicion: 'POR', esClave: true },
+      { nombre: 'Dani Carvajal', dorsal: 14, posicion: 'DEF', esClave: true },
       { nombre: 'Djené Dakonam', dorsal: 2, posicion: 'DEF', esCapitan: true, esClave: true },
-      { nombre: 'Juan Berrocal', dorsal: 4, posicion: 'DEF' },
       { nombre: 'Omar Alderete', dorsal: 15, posicion: 'DEF', esClave: true },
-      { nombre: 'Diego Rico', dorsal: 16, posicion: 'DEF' },
+      { nombre: 'Johan Mojica', dorsal: 3, posicion: 'DEF' },
+      { nombre: 'Mario Martín', dorsal: 5, posicion: 'MED' },
       { nombre: 'Mauro Arambarri', dorsal: 8, posicion: 'MED', esClave: true },
-      { nombre: 'Luis Milla', dorsal: 5, posicion: 'MED', esClave: true },
-      { nombre: 'Carles Pérez', dorsal: 17, posicion: 'MED' },
-      { nombre: 'Christantus Uche', dorsal: 6, posicion: 'MED' },
-      { nombre: 'Álex Sola', dorsal: 11, posicion: 'MED' },
-      { nombre: 'Bertuğ Yıldırım', dorsal: 9, posicion: 'DEL' }
+      { nombre: 'Christantus Uche', dorsal: 6, posicion: 'MED', esClave: true },
+      { nombre: 'Juanmi', dorsal: 7, posicion: 'DEL' },
+      { nombre: 'Enes Ünal', dorsal: 10, posicion: 'DEL', esClave: true },
+      { nombre: 'Borja Mayoral', dorsal: 9, posicion: 'DEL' }
     ],
-    suplentes: ['Letáček', 'Nyom', 'Domingos Duarte', 'Yellu Santiago', 'Peter Federico', 'Álvaro Rodríguez'],
+    suplentes: ['Letáček', 'Sebastián Boselli', 'Zaid Romero', 'Ramón Terrats', 'Orel Mangala', 'Francho Serrano', 'Martín Satriano', 'Iván Azón'],
     bajasHabituales: [
-      { jugador: 'Borja Mayoral', posicion: 'DEL', tipo: 'DUDA', motivo: 'Molestias rodilla operada', gravedad: 'CRITICA', esClave: true, tiempoEstimado: 'Duda de última hora' }
+      { jugador: 'Sebastián Boselli', posicion: 'DEF', tipo: 'DUDA', motivo: 'Sobrecarga muscular', gravedad: 'LEVE', esClave: false, tiempoEstimado: 'Duda de última hora' }
     ]
   },
   'Rayo Vallecano': {

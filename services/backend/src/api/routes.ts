@@ -11,6 +11,7 @@ import { ingestHistoricalData } from '../ingestion/historical-loader.js';
 import { syncLiveQuiniela } from '../ingestion/live-quiniela-service.js';
 import { SquadService } from '../core/sports/squad-service.js';
 import { HeatmapService } from '../core/sports/heatmap-service.js';
+import { TeamsDirectoryService } from '../core/sports/teams-directory-service.js';
 
 async function enrichJornadaPartidos(jornada: any) {
   const enrichedPartidos = await Promise.all(jornada.partidos.map(async (partido: any) => {
@@ -339,6 +340,31 @@ export async function registerRoutes(app: FastifyInstance) {
     const { equipo } = req.params as { equipo: string };
     const data = await HeatmapService.getTeamHeatmap(equipo);
     return reply.send(data);
+  });
+
+  // 5c. Directorio de Equipos con Datos Agregados (Primera y Segunda División)
+  app.get('/api/equipos', {
+    schema: {
+      description: 'Directorio completo de equipos de Primera y Segunda División con rendimiento, mapas de calor agregados y plantillas',
+      tags: ['Táctica'],
+      querystring: {
+        type: 'object',
+        properties: {
+          division: { type: 'string', enum: ['PRIMERA', 'SEGUNDA'] },
+          q: { type: 'string' }
+        }
+      }
+    }
+  }, async (req, reply) => {
+    const query = req.query as { division?: 'PRIMERA' | 'SEGUNDA'; q?: string };
+    const teams = await TeamsDirectoryService.getAllTeams({
+      division: query?.division,
+      query: query?.q
+    });
+    return reply.send({
+      total: teams.length,
+      equipos: teams
+    });
   });
 
   // 4. Recalcular predicciones IA para una jornada
