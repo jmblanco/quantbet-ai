@@ -387,7 +387,10 @@ export async function registerRoutes(app: FastifyInstance) {
 
     return reply.send({
       success: true,
-      result
+      result: {
+        ...result,
+        fileContent: result.formattedQuiFile
+      }
     });
   });
 
