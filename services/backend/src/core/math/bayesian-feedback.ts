@@ -32,8 +32,8 @@ export interface MatchUpdateResult {
   adjustmentLog: string[];
 }
 
-const LEAGUE_BASE_HOME_GOALS = 1.45;
-const LEAGUE_BASE_AWAY_GOALS = 1.05;
+const LEAGUE_BASE_HOME_GOALS = 1.32;
+const LEAGUE_BASE_AWAY_GOALS = 1.12;
 
 // Priors iniciales por categorías históricas
 const HISTORICAL_PRIORS: Record<string, { attack: number; defense: number }> = {
@@ -103,7 +103,7 @@ export function getDefaultTeamStrength(team: string): TeamStrength {
 export function estimateMatchExpectedGoals(
   home: TeamStrength,
   away: TeamStrength,
-  homeAdvantage: number = 1.18
+  homeAdvantage: number = 1.08
 ): { lambdaHome: number; muAway: number } {
   const lambda = home.attack * away.defense * homeAdvantage * LEAGUE_BASE_HOME_GOALS;
   const mu = away.attack * home.defense * LEAGUE_BASE_AWAY_GOALS;

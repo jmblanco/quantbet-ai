@@ -103,9 +103,12 @@ const prizeCategories = computed(() => {
       <div class="glass-panel p-5 rounded-3xl border border-slate-800 space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Estado Jornada {{ jornada.numero }}</span>
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-            EN JUEGO
+          <span
+            class="px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1 border"
+            :class="pendingMatches.length === 0 || jornada.estado === 'FINALIZADA' ? 'bg-slate-800 text-slate-300 border-slate-700' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'"
+          >
+            <span v-if="pendingMatches.length > 0 && jornada.estado !== 'FINALIZADA'" class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>{{ pendingMatches.length === 0 || jornada.estado === 'FINALIZADA' ? 'FINALIZADA' : 'EN JUEGO' }}</span>
           </span>
         </div>
 
@@ -115,8 +118,13 @@ const prizeCategories = computed(() => {
         </div>
 
         <p class="text-xs text-slate-300">
-          Queda <strong class="text-amber-400 font-mono">{{ pendingMatches.length }}</strong> encuentro decisivo por jugarse: 
-          <strong>Sevilla vs Osasuna</strong> (Lunes 21:00h).
+          <span v-if="pendingMatches.length === 0">
+            Todos los 15 encuentros de la jornada han concluido con escrutinio oficial.
+          </span>
+          <span v-else>
+            Queda <strong class="text-amber-400 font-mono">{{ pendingMatches.length }}</strong> encuentro decisivo por jugarse: 
+            <strong>{{ pendingMatches.map(p => p.equipoLocal + ' vs ' + p.equipoVisitante).slice(0, 2).join(', ') }}</strong>.
+          </span>
         </p>
 
         <button

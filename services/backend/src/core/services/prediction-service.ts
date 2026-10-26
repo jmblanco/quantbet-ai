@@ -237,6 +237,24 @@ export class PredictionService {
   ): Promise<{ lambdaHome: number; muAway: number }> {
     const homeStr = await this.getTeamStrength(local);
     const awayStr = await this.getTeamStrength(visitante);
-    return estimateMatchExpectedGoals(homeStr, awayStr);
+    const baseGoals = estimateMatchExpectedGoals(homeStr, awayStr);
+
+    // Ajuste sutil por consenso de mercado si existe disparidad de favoritismo
+    if (lae1 > 0 && lae2 > 0) {
+      const sum = lae1 + lae2;
+      const marketHomeRatio = lae1 / sum;
+      const marketAwayRatio = lae2 / sum;
+
+      // Ponderación: 75% fuerzas bayesianas del club + 25% consenso de mercado
+      const blendedLambda = baseGoals.lambdaHome * 0.75 + (baseGoals.lambdaHome * (marketHomeRatio / 0.50)) * 0.25;
+      const blendedMu = baseGoals.muAway * 0.75 + (baseGoals.muAway * (marketAwayRatio / 0.50)) * 0.25;
+
+      return {
+        lambdaHome: Math.max(0.2, Number(blendedLambda.toFixed(2))),
+        muAway: Math.max(0.2, Number(blendedMu.toFixed(2)))
+      };
+    }
+
+    return baseGoals;
   }
 }

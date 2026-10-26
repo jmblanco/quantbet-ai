@@ -187,23 +187,7 @@ async function fetchJornada(targetId?: string) {
 }
 
 function setupInitialSelections(jornadaData: Jornada) {
-  const initial: Record<number, { 1: boolean; X: boolean; 2: boolean }> = {};
-  jornadaData.partidos.forEach((p: Partido) => {
-    initial[p.numeroCasilla] = { '1': false, 'X': false, '2': false };
-    const rec = p.predicciones[0]?.recomendacionSigno || '1';
-    if (rec.includes('1')) initial[p.numeroCasilla]['1'] = true;
-    if (rec.includes('X')) initial[p.numeroCasilla]['X'] = true;
-    if (rec.includes('2')) initial[p.numeroCasilla]['2'] = true;
-  });
-  userSelections.value = initial;
-
-  const p15 = jornadaData.partidos.find(p => p.numeroCasilla === 15);
-  if (p15 && p15.resultadoSigno && p15.resultadoSigno.includes('-')) {
-    const parts = p15.resultadoSigno.split('-');
-    pleno15Score.value = { home: parts[0] || '1', away: parts[1] || '2' };
-  } else {
-    pleno15Score.value = { home: '1', away: '2' };
-  }
+  applyBudgetPreset('estandar');
 }
 
 function toggleSign(casilla: number, signo: '1' | 'X' | '2') {
@@ -229,64 +213,107 @@ function applyBudgetPreset(preset: string) {
   if (!jornada.value) return;
   activePreset.value = preset;
 
-  // 1. Reset a fijos directos
-  jornada.value.partidos.forEach(p => {
-    if (p.numeroCasilla <= 14) {
-      const pred = p.predicciones[0];
-      const p1 = Number(pred?.prob1 || 0.4);
-      const pX = Number(pred?.probX || 0.3);
-      const p2 = Number(pred?.prob2 || 0.3);
-      let primary: '1' | 'X' | '2' = '1';
-      if (pX > p1 && pX > p2) primary = 'X';
-      else if (p2 > p1 && p2 > pX) primary = '2';
-
-      userSelections.value[p.numeroCasilla] = {
-        '1': primary === '1',
-        'X': primary === 'X',
-        '2': primary === '2'
-      };
-    }
-  });
-
   if (preset === 'directo') {
     guarantee.value = 'DIRECTO';
+    generateBestSelections(0);
   } else if (preset === 'economico') {
     guarantee.value = 'DIRECTO';
-    // Añadir 1 doble en el partido con mayor valor esperado (EV)
-    addBestDoubles(1);
+    generateBestSelections(1);
   } else if (preset === 'estandar') {
     guarantee.value = 'AL_13';
-    // Añadir 4 dobles con reducción al 13 (Coste: 3,00 €)
-    addBestDoubles(4);
+    generateBestSelections(4);
   } else if (preset === 'avanzado') {
     guarantee.value = 'AL_13';
-    // Añadir 7 dobles con reducción al 13 (Coste: 12,00 €)
-    addBestDoubles(7);
+    generateBestSelections(7);
   }
 
   recalculateReduction();
 }
 
-function addBestDoubles(count: number) {
+function generateBestSelections(doubleCountTarget: number) {
   if (!jornada.value) return;
-  const ranked = [...jornada.value.partidos]
-    .filter(p => p.numeroCasilla <= 14)
-    .sort((a, b) => {
-      const predA = a.predicciones[0];
-      const predB = b.predicciones[0];
-      const maxEvA = Math.max(Number(predA?.ev1 || 1), Number(predA?.evX || 1), Number(predA?.ev2 || 1));
-      const maxEvB = Math.max(Number(predB?.ev1 || 1), Number(predB?.evX || 1), Number(predB?.ev2 || 1));
-      return maxEvB - maxEvA;
-    });
 
-  for (let i = 0; i < Math.min(count, ranked.length); i++) {
-    const p = ranked[i];
+  const matches = jornada.value.partidos.filter(p => p.numeroCasilla <= 14);
+
+  // Analizamos cada partido para ordenar sus 3 signos por mérito probabilístico y valor esperado (EV)
+  const matchOptions = matches.map(p => {
     const pred = p.predicciones[0];
-    const rec = pred?.recomendacionSigno || '1X';
-    if (userSelections.value[p.numeroCasilla]) {
-      if (rec.includes('1')) userSelections.value[p.numeroCasilla]['1'] = true;
-      if (rec.includes('X')) userSelections.value[p.numeroCasilla]['X'] = true;
-      if (rec.includes('2')) userSelections.value[p.numeroCasilla]['2'] = true;
+    const p1 = Number(pred?.prob1 || 0.38);
+    const pX = Number(pred?.probX || 0.28);
+    const p2 = Number(pred?.prob2 || 0.34);
+    const ev1 = Number(pred?.ev1 || 1.0);
+    const evX = Number(pred?.evX || 1.0);
+    const ev2 = Number(pred?.ev2 || 1.0);
+
+    const signs = [
+      { sign: '1' as const, prob: p1, ev: ev1, score: p1 * Math.max(0.65, ev1) },
+      { sign: 'X' as const, prob: pX, ev: evX, score: pX * Math.max(0.65, evX) },
+      { sign: '2' as const, prob: p2, ev: ev2, score: p2 * Math.max(0.65, ev2) }
+    ].sort((a, b) => b.score - a.score);
+
+    // Margen de certidumbre entre el mejor y segundo signo
+    const margin = Math.abs(signs[0].score - signs[1].score);
+    // Valor de doblar: menor margen (alta incertidumbre) combinado con EV positivo en el segundo signo
+    const doubleValue = (1 - margin) * Math.max(0.9, signs[1].ev);
+
+    return {
+      partido: p,
+      signs,
+      rec: pred?.recomendacionSigno || '',
+      doubleValue
+    };
+  });
+
+  // Ordenamos los partidos que más se benefician de ser un Doble
+  const sortedForDoubles = [...matchOptions].sort((a, b) => b.doubleValue - a.doubleValue);
+  const doubleCasillas = new Set(
+    sortedForDoubles.slice(0, doubleCountTarget).map(m => m.partido.numeroCasilla)
+  );
+
+  matchOptions.forEach(m => {
+    const casilla = m.partido.numeroCasilla;
+    const isDouble = doubleCasillas.has(casilla);
+
+    if (isDouble) {
+      // Determinamos los 2 signos del doble
+      let s1 = m.signs[0].sign;
+      let s2 = m.signs[1].sign;
+
+      // Si la IA ya recomendó un doble específico (ej: '1X', '12', 'X2'), lo respetamos
+      if (m.rec.length === 2 && ['1', 'X', '2'].includes(m.rec[0]) && ['1', 'X', '2'].includes(m.rec[1])) {
+        s1 = m.rec[0] as '1' | 'X' | '2';
+        s2 = m.rec[1] as '1' | 'X' | '2';
+      }
+
+      userSelections.value[casilla] = {
+        '1': s1 === '1' || s2 === '1',
+        'X': s1 === 'X' || s2 === 'X',
+        '2': s1 === '2' || s2 === '2'
+      };
+    } else {
+      // Fijo: mejor signo único por mérito probabilístico / EV
+      let s1 = m.signs[0].sign;
+      if (m.rec.length === 1 && ['1', 'X', '2'].includes(m.rec)) {
+        s1 = m.rec as '1' | 'X' | '2';
+      }
+
+      userSelections.value[casilla] = {
+        '1': s1 === '1',
+        'X': s1 === 'X',
+        '2': s1 === '2'
+      };
+    }
+  });
+
+  // Pleno 15: Marcador recomendado
+  const p15 = jornada.value.partidos.find(p => p.numeroCasilla === 15);
+  if (p15) {
+    const rec15 = p15.predicciones[0]?.recomendacionSigno;
+    if (rec15 && rec15.includes('-')) {
+      const parts = rec15.split('-');
+      pleno15Score.value = { home: parts[0] || '1', away: parts[1] || '2' };
+    } else {
+      pleno15Score.value = { home: '1', away: '2' };
     }
   }
 }
@@ -403,14 +430,19 @@ async function fetchTeamRatings() {
   }
 }
 
-async function runBayesianFeedback() {
+async function runBayesianFeedback(targetJornadaId?: string) {
   executingFeedback.value = true;
   try {
+    const jId = targetJornadaId || selectedJornadaId.value || undefined;
     const { data } = await axios.post('/api/modelo/retroalimentar', {
-      jornadaId: selectedJornadaId.value || undefined
+      jornadaId: jId
     });
     lastFeedbackInfo.value = data;
     await fetchTeamRatings();
+    // Si la jornada actual es la retroalimentada, recargar
+    if (jId && selectedJornadaId.value === jId) {
+      await fetchJornada(jId);
+    }
   } catch (err) {
     console.error('Error ejecutando retroalimentación:', err);
   } finally {
@@ -498,7 +530,7 @@ onMounted(async () => {
               class="bg-transparent text-slate-200 text-xs font-bold focus:outline-none cursor-pointer pr-1"
             >
               <option v-for="j in availableJornadas" :key="j.id" :value="j.id" class="bg-slate-950 text-slate-200">
-                Jornada {{ j.numero }} ({{ j.temporada?.codigo || '2026-2027' }})
+                Jornada {{ j.numero }} • {{ j.estado === 'EN_JUEGO' ? '🔴 En Juego' : j.estado === 'FINALIZADA' ? '✓ Finalizada' : '🗓 Programada' }}
               </option>
             </select>
           </div>
@@ -563,7 +595,7 @@ onMounted(async () => {
       </div>
 
       <div v-else>
-        <!-- PANTALLA 1: BOLETO INTELIGENTE -->
+        <!-- PANTALLA 1: BOLETO INTELIGENTE / HISTÓRICO -->
         <TicketScreen
           v-if="activeTab === 'boleto' && jornada"
           :jornada="jornada"
@@ -574,12 +606,15 @@ onMounted(async () => {
           :totalBetsCount="totalBetsCount"
           :reductionRatioPct="reductionRatioPct"
           :activePreset="activePreset"
+          :executingFeedback="executingFeedback"
+          :lastFeedbackInfo="lastFeedbackInfo"
           @toggleSign="toggleSign"
           @setPleno15="setPleno15"
           @applyPreset="applyBudgetPreset"
           @downloadQui="downloadQuiFile"
           @copyPronostico="copyPronosticoToClipboard"
           @openMethodology="showMethodologyModal = true"
+          @runBayesianFeedback="runBayesianFeedback"
         />
 
         <!-- PANTALLA 2: EN VIVO & ESCRUTINIO -->
