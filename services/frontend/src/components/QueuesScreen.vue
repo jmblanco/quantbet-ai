@@ -3,8 +3,6 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import axios from 'axios';
 import {
   Activity,
-  Play,
-  Pause,
   RotateCcw,
   CheckCircle2,
   AlertTriangle,
@@ -14,7 +12,8 @@ import {
   Radio,
   Sliders,
   Shield,
-  Zap
+  Zap,
+  Cpu
 } from 'lucide-vue-next';
 
 interface QueueReport {
@@ -30,8 +29,6 @@ interface QueueReport {
 const queues = ref<QueueReport[]>([]);
 const loading = ref(true);
 const autoRefresh = ref(true);
-const dispatchingKey = ref<string | null>(null);
-const feedbackMsg = ref<{ type: 'success' | 'error'; text: string } | null>(null);
 
 let timer: number | null = null;
 
@@ -41,47 +38,41 @@ const QUEUE_METADATA: Record<string, {
   icon: any;
   color: string;
   cadence: string;
-  defaultPayload?: any;
 }> = {
   'sync-live': {
     title: 'Sincronización en Directo SELAE & % LAE',
     description: 'Scraping de marcadores 1X2, goles en vivo, bote acumulado y porcentajes de sellado oficiales.',
     icon: Radio,
     color: 'emerald',
-    cadence: 'Repetible cada 60s (en juego) / Manual',
-    defaultPayload: { trigger: 'ui-dashboard' }
+    cadence: 'Automático: Cada 60s en juego'
   },
   'tactical-refresh': {
     title: 'Refresco Táctico & Mapas de Calor 3x3',
     description: 'Cálculo de ocupación zonal, altura de bloque defensivo y carriles preferentes de los 42 clubes.',
     icon: Sliders,
     color: 'sky',
-    cadence: 'Post-Jornada semanal / On-Demand',
-    defaultPayload: { jornadaNumero: 16 }
+    cadence: 'Automático: Post-Jornada semanal'
   },
   'bayesian-feedback': {
     title: 'Calibración Bayesiana Elo & Goles Esperados',
     description: 'Ajuste probabilístico online de ratings de ataque (λ) y defensa (μ) basado en factor sorpresa.',
     icon: Zap,
     color: 'violet',
-    cadence: 'Post-Jornada semanal / On-Demand',
-    defaultPayload: { trigger: 'dashboard-calibration' }
+    cadence: 'Automático: Post-Jornada semanal'
   },
   'squad-audit': {
     title: 'Auditoría de Plantillas & Bajas Médicas',
     description: 'Verificación de onces iniciales y ausencias médicas ponderadas de Primera y Segunda División.',
     icon: Shield,
     color: 'amber',
-    cadence: 'Previa de jornada (24h y 1h antes) / On-Demand',
-    defaultPayload: { equipo: 'Real Madrid' }
+    cadence: 'Automático: Previa de jornada (24h y 1h antes)'
   },
   'historical-ingest': {
     title: 'Ingesta Masiva de Datasets Históricos',
     description: 'Carga asíncrona de 10+ temporadas (2014-2026, 6.428 partidos) en PostgreSQL.',
     icon: Database,
     color: 'rose',
-    cadence: 'Bajo demanda en segundo plano',
-    defaultPayload: { batch: 'full-seasons' }
+    cadence: 'Automático: Inicio de temporada / Daemon'
   }
 };
 
@@ -101,50 +92,6 @@ async function fetchStatus(showLoading = false) {
     console.error('Error fetching queue status:', err);
   } finally {
     loading.value = false;
-  }
-}
-
-async function dispatchJob(queueName: string) {
-  dispatchingKey.value = queueName;
-  feedbackMsg.value = null;
-  try {
-    const meta = QUEUE_METADATA[queueName];
-    const { data } = await axios.post(`/api/queues/${queueName}/dispatch`, {
-      jobName: `manual-${queueName}`,
-      payload: meta?.defaultPayload || {}
-    });
-    feedbackMsg.value = {
-      type: 'success',
-      text: `Trabajo #${data.jobId} encolado exitosamente en ${queueName}. El worker lo procesará en background.`
-    };
-    await fetchStatus();
-  } catch (err: any) {
-    feedbackMsg.value = {
-      type: 'error',
-      text: `Error al encolar trabajo: ${err.response?.data?.error || err.message}`
-    };
-  } finally {
-    dispatchingKey.value = null;
-    setTimeout(() => {
-      if (feedbackMsg.value?.type === 'success') feedbackMsg.value = null;
-    }, 5000);
-  }
-}
-
-async function togglePause(queue: QueueReport) {
-  try {
-    const newPauseState = !queue.isPaused;
-    await axios.post(`/api/queues/${queue.name}/pause`, { pause: newPauseState });
-    queue.isPaused = newPauseState;
-    feedbackMsg.value = {
-      type: 'success',
-      text: `Cola ${queue.name} ${newPauseState ? 'pausada' : 'reanudada'} con éxito.`
-    };
-  } catch (err: any) {
-    feedbackMsg.value = {
-      type: 'error',
-      text: `Error al cambiar estado de cola: ${err.message}`
-    };
   }
 }
 
@@ -211,23 +158,12 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- MENSAJES DE FEEDBACK -->
-    <div
-      v-if="feedbackMsg"
-      :class="feedbackMsg.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-red-500/10 border-red-500/30 text-red-300'"
-      class="p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 animate-fadeIn"
-    >
-      <CheckCircle2 v-if="feedbackMsg.type === 'success'" class="h-4 w-4 shrink-0 text-emerald-400" />
-      <AlertTriangle v-else class="h-4 w-4 shrink-0 text-red-400" />
-      <span>{{ feedbackMsg.text }}</span>
-    </div>
-
     <!-- TARJETAS DE MÉTRICAS GLOBALES -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <!-- Trabajos Activos -->
       <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-3.5">
         <div class="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-          <Play class="h-5 w-5" />
+          <Cpu class="h-5 w-5" />
         </div>
         <div>
           <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">En Ejecución</span>
@@ -347,27 +283,14 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- Botones de Acción Operacional -->
+            <!-- Estado de Ejecución en Background (Solo Lectura) -->
             <div class="flex items-center gap-2 shrink-0">
-              <!-- Botón Disparar Job Ahora -->
-              <button
-                @click="dispatchJob(q.name)"
-                :disabled="dispatchingKey === q.name"
-                class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
-              >
-                <RotateCcw class="h-3.5 w-3.5" :class="{ 'animate-spin': dispatchingKey === q.name }" />
-                <span>{{ dispatchingKey === q.name ? 'Encolando...' : 'Disparar Ahora' }}</span>
-              </button>
-
-              <!-- Botón Pausar / Reanudar -->
-              <button
-                @click="togglePause(q)"
-                class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700 cursor-pointer"
-                :title="q.isPaused ? 'Reanudar worker' : 'Pausar worker'"
-              >
-                <Play v-if="q.isPaused" class="h-3.5 w-3.5 text-emerald-400" />
-                <Pause v-else class="h-3.5 w-3.5 text-amber-400" />
-              </button>
+              <div class="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] font-semibold flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full" :class="q.active > 0 ? 'bg-blue-400 animate-pulse' : 'bg-emerald-400'"></span>
+                <span :class="q.active > 0 ? 'text-blue-300' : 'text-slate-300'">
+                  {{ q.active > 0 ? 'Procesando en Background' : 'Worker Activo (Daemon)' }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
