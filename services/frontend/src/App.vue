@@ -410,6 +410,8 @@ function generateBestSelections(doubleCountTarget: number) {
 async function recalculateReduction() {
   if (!jornada.value) return;
   const selectionsArray: string[][] = [];
+  const matchesFormatted: Array<{ matchNumber: number; selection: '1' | 'X' | '2' | '1X' | '12' | 'X2' | '1X2' }> = [];
+
   for (let i = 1; i <= 14; i++) {
     const s = userSelections.value[i] || { '1': true, 'X': false, '2': false };
     const signs: string[] = [];
@@ -417,13 +419,25 @@ async function recalculateReduction() {
     if (s['X']) signs.push('X');
     if (s['2']) signs.push('2');
     selectionsArray.push(signs);
+
+    // Formatear combinación de signos ordenada
+    const signStr = signs.slice().sort().join('') || '1';
+    matchesFormatted.push({
+      matchNumber: i,
+      selection: (signStr as any)
+    });
   }
+
+  const p15 = `${pleno15Score.value.home || '0'}-${pleno15Score.value.away || '0'}`;
+  const g = guarantee.value === 'DIRECTO' ? 'DIRECTA' : guarantee.value;
 
   try {
     const { data } = await axios.post('/api/reducciones/calcular', {
+      matches: matchesFormatted,
+      pleno15: p15,
+      guarantee: g,
       userSelections: selectionsArray,
       pleno15Score: pleno15Score.value,
-      guarantee: guarantee.value,
       jornadaId: selectedJornadaId.value || undefined
     });
     if (data.success) {

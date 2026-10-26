@@ -452,6 +452,24 @@ export async function registerRoutes(app: FastifyInstance) {
       tags: ['Reducciones']
     }
   }, async (req, reply) => {
+    let body = (req.body as any) || {};
+
+    // Normalización flexible para soportar tanto esquema matches como userSelections
+    if (Array.isArray(body.userSelections) && !body.matches) {
+      body.matches = body.userSelections.map((signs: string[], idx: number) => ({
+        matchNumber: idx + 1,
+        selection: (Array.isArray(signs) ? signs.slice().sort().join('') : signs) || '1'
+      }));
+    }
+
+    if (body.pleno15Score && !body.pleno15) {
+      body.pleno15 = `${body.pleno15Score.home ?? '0'}-${body.pleno15Score.away ?? '0'}`;
+    }
+
+    if (body.guarantee === 'DIRECTO') {
+      body.guarantee = 'DIRECTA';
+    }
+
     const reductionSchema = z.object({
       guarantee: z.enum(['AL_13', 'AL_12', 'DIRECTA']),
       pleno15: z.string().default('0-0'),
@@ -471,7 +489,7 @@ export async function registerRoutes(app: FastifyInstance) {
       }).optional()
     });
 
-    const parseResult = reductionSchema.safeParse(req.body);
+    const parseResult = reductionSchema.safeParse(body);
     if (!parseResult.success) {
       return reply.status(400).send({
         error: 'Esquema de boletos inválido. Debe enviar exactamente 14 partidos con selecciones válidas.',
