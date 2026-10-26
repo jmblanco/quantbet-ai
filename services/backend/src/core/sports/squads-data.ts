@@ -3,6 +3,7 @@ import { Jugador, BajaJugador } from './squad-service.js';
 export interface TeamTacticalProfile {
   sistema: string;
   entrenador: string;
+  referentes?: string[];
   titulares: Jugador[];
   suplentes: string[];
   bajasHabituales: BajaJugador[];
@@ -15,6 +16,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Real Madrid': {
     sistema: '4-3-3',
     entrenador: 'José Mourinho',
+    referentes: ['Kylian Mbappé','Vinícius Jr.','Jude Bellingham'],
     titulares: [
       { nombre: 'Thibaut Courtois', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Trent Alexander-Arnold', dorsal: 12, posicion: 'DEF', esClave: true },
@@ -37,6 +39,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Barcelona': {
     sistema: '4-2-3-1',
     entrenador: 'Hansi Flick',
+    referentes: ['Lamine Yamal','Robert Lewandowski','Raphinha'],
     titulares: [
       { nombre: 'Iñaki Peña', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Jules Koundé', dorsal: 23, posicion: 'DEF', esClave: true },
@@ -60,6 +63,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'At. Madrid': {
     sistema: '4-4-2',
     entrenador: 'Diego Pablo Simeone',
+    referentes: ['Antoine Griezmann','Julián Álvarez','Jan Oblak'],
     titulares: [
       { nombre: 'Jan Oblak', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Marcos Llorente', dorsal: 14, posicion: 'DEF', esClave: true },
@@ -82,6 +86,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Athletic Club': {
     sistema: '4-2-3-1',
     entrenador: 'Edin Terzić',
+    referentes: ['Nico Williams','Iñaki Williams','Oihan Sancet'],
     titulares: [
       { nombre: 'Julen Agirrezabala', dorsal: 13, posicion: 'POR' },
       { nombre: 'Óscar de Marcos', dorsal: 18, posicion: 'DEF', esCapitan: true },
@@ -103,6 +108,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Real Sociedad': {
     sistema: '4-3-3',
     entrenador: 'Pellegrino Matarazzo',
+    referentes: ['Mikel Oyarzabal','Takefusa Kubo','Martín Zubimendi'],
     titulares: [
       { nombre: 'Álex Remiro', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Jon Aramburu', dorsal: 27, posicion: 'DEF' },
@@ -125,6 +131,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Betis': {
     sistema: '4-2-3-1',
     entrenador: 'Manuel Pellegrini',
+    referentes: ['Giovani Lo Celso','Isco','Pablo Fornals'],
     titulares: [
       { nombre: 'Rui Silva', dorsal: 1, posicion: 'POR' },
       { nombre: 'Héctor Bellerín', dorsal: 2, posicion: 'DEF' },
@@ -147,6 +154,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Villarreal': {
     sistema: '4-4-2',
     entrenador: 'Íñigo Pérez',
+    referentes: ['Gerard Moreno','Álex Baena','Ayoze Pérez'],
     titulares: [
       { nombre: 'Diego Conde', dorsal: 13, posicion: 'POR' },
       { nombre: 'Kiko Femenía', dorsal: 17, posicion: 'DEF' },
@@ -169,6 +177,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Sevilla': {
     sistema: '4-3-3',
     entrenador: 'Luis García Plaza',
+    referentes: ['Dodi Lukébakio','Nemanja Gudelj','Saúl'],
     titulares: [
       { nombre: 'Örjan Nyland', dorsal: 13, posicion: 'POR' },
       { nombre: 'José Ángel Carmona', dorsal: 32, posicion: 'DEF' },
@@ -191,6 +200,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Osasuna': {
     sistema: '4-3-3',
     entrenador: 'Jagoba Arrasate',
+    referentes: ['Ante Budimir','Bryan Zaragoza','Aimar Oroz'],
     titulares: [
       { nombre: 'Sergio Herrera', dorsal: 1, posicion: 'POR', esClave: true, esCapitan: true },
       { nombre: 'Jesús Areso', dorsal: 12, posicion: 'DEF' },
@@ -212,6 +222,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Celta': {
     sistema: '3-4-2-1',
     entrenador: 'Claudio Giráldez',
+    referentes: ['Iago Aspas','Borja Iglesias','Óscar Mingueza'],
     titulares: [
       { nombre: 'Vicente Guaita', dorsal: 13, posicion: 'POR' },
       { nombre: 'Javi Rodríguez', dorsal: 32, posicion: 'DEF' },
@@ -234,6 +245,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Valencia': {
     sistema: '4-4-2',
     entrenador: 'Javier Aguirre',
+    referentes: ['Pepelu','Hugo Duro','Javi Guerra'],
     titulares: [
       { nombre: 'Giorgi Mamardashvili', dorsal: 25, posicion: 'POR', esClave: true },
       { nombre: 'Thierry Correia', dorsal: 12, posicion: 'DEF' },
@@ -256,6 +268,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Getafe': {
     sistema: '4-4-2',
     entrenador: 'José Bordalás',
+    referentes: ['Borja Mayoral','Dani Carvajal','Luis Milla'],
     titulares: [
       { nombre: 'David Soria', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Dani Carvajal', dorsal: 14, posicion: 'DEF', esClave: true },
@@ -278,6 +291,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Rayo Vallecano': {
     sistema: '4-2-3-1',
     entrenador: 'Beñat San José',
+    referentes: ['James Rodríguez','Isi Palazón','Jorge de Frutos'],
     titulares: [
       { nombre: 'Augusto Batalla', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Andrei Rațiu', dorsal: 2, posicion: 'DEF', esClave: true },
@@ -299,6 +313,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Mallorca': {
     sistema: '4-3-3',
     entrenador: 'Jagoba Arrasate',
+    referentes: ['Vedat Muriqi','Sergi Darder','Dani Rodríguez'],
     titulares: [
       { nombre: 'Dominik Greif', dorsal: 1, posicion: 'POR' },
       { nombre: 'Pablo Maffeo', dorsal: 23, posicion: 'DEF' },
@@ -320,6 +335,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Alavés': {
     sistema: '4-2-3-1',
     entrenador: 'Eduardo Coudet',
+    referentes: ['Kike García','Carlos Vicente','Jon Guridi'],
     titulares: [
       { nombre: 'Antonio Sivera', dorsal: 1, posicion: 'POR', esCapitan: true, esClave: true },
       { nombre: 'Nahuel Tenaglia', dorsal: 14, posicion: 'DEF' },
@@ -341,6 +357,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Leganés': {
     sistema: '4-2-3-1',
     entrenador: 'Borja Jiménez',
+    referentes: ['Juan Cruz','Dani Raba','Yvan Neyou'],
     titulares: [
       { nombre: 'Marko Dmitrović', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Valentin Rosier', dorsal: 2, posicion: 'DEF' },
@@ -363,6 +380,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Girona': {
     sistema: '4-2-3-1',
     entrenador: 'Míchel Sánchez',
+    referentes: ['Viktor Tsygankov','Abel Ruiz','Portu'],
     titulares: [
       { nombre: 'Paulo Gazzaniga', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Arnau Martínez', dorsal: 4, posicion: 'DEF' },
@@ -385,6 +403,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Espanyol': {
     sistema: '4-4-2',
     entrenador: 'Manolo González',
+    referentes: ['Javi Puado','Alex Král','Joan García'],
     titulares: [
       { nombre: 'Joan Garcia', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Omar El Hilali', dorsal: 23, posicion: 'DEF' },
@@ -407,6 +426,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Las Palmas': {
     sistema: '4-2-3-1',
     entrenador: 'Diego Martínez',
+    referentes: ['Alberto Moleiro','Sandro Ramírez','Kirian Rodríguez'],
     titulares: [
       { nombre: 'Jasper Cillessen', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Viti Rozada', dorsal: 22, posicion: 'DEF' },
@@ -429,6 +449,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Valladolid': {
     sistema: '4-2-3-1',
     entrenador: 'Paulo Pezzolano',
+    referentes: ['Raúl Moro','Selim Amallah','Marcos André'],
     titulares: [
       { nombre: 'Karl Hein', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Luis Pérez', dorsal: 2, posicion: 'DEF' },
@@ -455,6 +476,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Levante': {
     sistema: '4-4-2',
     entrenador: 'Luís Castro',
+    referentes: ['Carlos Álvarez','José Luis Morales','Roger Brugué'],
     titulares: [
       { nombre: 'Andrés Fernández', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Andrés García', dorsal: 2, posicion: 'DEF' },
@@ -476,6 +498,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Real Zaragoza': {
     sistema: '4-4-2',
     entrenador: 'Víctor Fernández',
+    referentes: ['Mario Soberón','Samed Baždar','Keidi Bare'],
     titulares: [
       { nombre: 'Gaëtan Poussin', dorsal: 13, posicion: 'POR' },
       { nombre: 'Iván Calero', dorsal: 22, posicion: 'DEF' },
@@ -497,6 +520,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Sporting de Gijón': {
     sistema: '4-3-3',
     entrenador: 'Rubén Albés',
+    referentes: ['Gaspar Campos','Juan Otero','Cote'],
     titulares: [
       { nombre: 'Rubén Yáñez', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Guille Rosas', dorsal: 2, posicion: 'DEF', esClave: true },
@@ -518,6 +542,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Racing Santander': {
     sistema: '4-2-3-1',
     entrenador: 'José Alberto López',
+    referentes: ['Íñigo Vicente','Juanca Arana','Andrés Martín'],
     titulares: [
       { nombre: 'Jokin Ezkieta', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Clément Michelin', dorsal: 2, posicion: 'DEF' },
@@ -539,6 +564,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Real Oviedo': {
     sistema: '4-2-3-1',
     entrenador: 'Javier Calleja',
+    referentes: ['Santi Cazorla','Alemão','Ilyas Chaira'],
     titulares: [
       { nombre: 'Aarón Escandell', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Oier Luengo', dorsal: 15, posicion: 'DEF' },
@@ -560,6 +586,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Granada': {
     sistema: '4-4-2',
     entrenador: 'Fran Escribá',
+    referentes: ['Myrto Uzuni','Lucas Boyé','Martin Hongla'],
     titulares: [
       { nombre: 'Diego Mariño', dorsal: 25, posicion: 'POR' },
       { nombre: 'Ricard Sánchez', dorsal: 2, posicion: 'DEF' },
@@ -581,6 +608,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Elche': {
     sistema: '3-5-2',
     entrenador: 'Martín Anselmi',
+    referentes: ['Nicolás Castro','Yago Santiago','Mourad'],
     titulares: [
       { nombre: 'Matías Dituro', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Álvaro Núñez', dorsal: 2, posicion: 'DEF' },
@@ -602,6 +630,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Eibar': {
     sistema: '4-2-3-1',
     entrenador: 'Joseba Etxeberria',
+    referentes: ['Antonio Puertas','Jon Bautista','Matheus Pereira'],
     titulares: [
       { nombre: 'Daniel Fuzato', dorsal: 1, posicion: 'POR' },
       { nombre: 'José Corpas', dorsal: 17, posicion: 'DEF' },
@@ -623,6 +652,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Almería': {
     sistema: '4-2-3-1',
     entrenador: 'Rubi',
+    referentes: ['Luis Suárez','Nico Melamed','Léo Baptistão'],
     titulares: [
       { nombre: 'Luís Maximiano', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Marc Pubill', dorsal: 18, posicion: 'DEF', esClave: true },
@@ -644,6 +674,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Deportivo': {
     sistema: '4-2-3-1',
     entrenador: 'Antonio Hidalgo',
+    referentes: ['Lucas Pérez','Yeremay Hernández','David Mella'],
     titulares: [
       { nombre: 'Helton Leite', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Ximo Navarro', dorsal: 2, posicion: 'DEF' },
@@ -665,6 +696,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Cádiz': {
     sistema: '4-4-2',
     entrenador: 'Paco López',
+    referentes: ['Chris Ramos','Brian Ocampo','Rubén Alcaraz'],
     titulares: [
       { nombre: 'David Gil', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Iza Carcelén', dorsal: 20, posicion: 'DEF', esCapitan: true },
@@ -686,6 +718,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Tenerife': {
     sistema: '4-4-2',
     entrenador: 'Pepe Mel',
+    referentes: ['Enric Gallego','Luismi Cruz','Waldo Rubio'],
     titulares: [
       { nombre: 'Salvi Carrasco', dorsal: 1, posicion: 'POR' },
       { nombre: 'Jérémy Mellot', dorsal: 22, posicion: 'DEF' },
@@ -708,6 +741,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Castellón': {
     sistema: '3-4-3',
     entrenador: 'Dick Schreuder',
+    referentes: ['Raúl Sánchez','Jesús De Miguel','Daijiro Chirino'],
     titulares: [
       { nombre: 'Gonzalo Crettaz', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Daijiro Chirino', dorsal: 14, posicion: 'DEF', esClave: true },
@@ -729,6 +763,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Burgos': {
     sistema: '4-4-2',
     entrenador: 'Luis Miguel Ramis',
+    referentes: ['Curro Sánchez','Fer Niño','Dani Ojeda'],
     titulares: [
       { nombre: 'Ander Cantero', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Anderson Arroyo', dorsal: 2, posicion: 'DEF' },
@@ -750,6 +785,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Albacete': {
     sistema: '4-4-2',
     entrenador: 'Alberto González',
+    referentes: ['Higinio Marín','Fidel Chaves','Alberto Quiles'],
     titulares: [
       { nombre: 'Raúl Lizoain', dorsal: 13, posicion: 'POR' },
       { nombre: 'Álvaro Rodríguez', dorsal: 2, posicion: 'DEF' },
@@ -771,6 +807,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Huesca': {
     sistema: '5-3-2',
     entrenador: 'Antonio Hidalgo',
+    referentes: ['Patrick Soko','Joaquín Muñoz','Jorge Pulido'],
     titulares: [
       { nombre: 'Dani Jiménez', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Toni Abad', dorsal: 2, posicion: 'DEF' },
@@ -792,6 +829,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Cartagena': {
     sistema: '4-4-2',
     entrenador: 'Jandro Castro',
+    referentes: ['Alfredo Ortuño','Jairo Izquierdo','Gastón Valles'],
     titulares: [
       { nombre: 'Pablo Campos', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Martín Aguirregabiria', dorsal: 2, posicion: 'DEF' },
@@ -813,6 +851,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Córdoba': {
     sistema: '4-2-3-1',
     entrenador: 'Iván Ania',
+    referentes: ['Cristian Carracedo','Antonio Casas','Jacobo González'],
     titulares: [
       { nombre: 'Carlos Marín', dorsal: 1, posicion: 'POR', esCapitan: true, esClave: true },
       { nombre: 'Carlos Albarrán', dorsal: 2, posicion: 'DEF' },
@@ -834,6 +873,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Málaga': {
     sistema: '4-2-3-1',
     entrenador: 'Sergio Pellicer',
+    referentes: ['Antonio Cordero','Dioni Villalba','Alfonso Herrero'],
     titulares: [
       { nombre: 'Alfonso Herrero', dorsal: 1, posicion: 'POR', esCapitan: true, esClave: true },
       { nombre: 'Carlos Puga', dorsal: 2, posicion: 'DEF' },
@@ -855,6 +895,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Eldense': {
     sistema: '4-4-2',
     entrenador: 'Dani Ponz',
+    referentes: ['Juanto Ortuño','Iván Chapela','Marc Mateu'],
     titulares: [
       { nombre: 'Ian Mackay', dorsal: 1, posicion: 'POR' },
       { nombre: 'Fran Gámez', dorsal: 2, posicion: 'DEF' },
@@ -876,6 +917,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Mirandés': {
     sistema: '5-3-2',
     entrenador: 'Alessio Lisci',
+    referentes: ['Joaquín Panichelli','Jon Gorrotxategi','Raúl Fernández'],
     titulares: [
       { nombre: 'Raúl Fernández', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Hugo Rincón', dorsal: 2, posicion: 'DEF' },
@@ -897,6 +939,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   'Racing Ferrol': {
     sistema: '4-2-3-1',
     entrenador: 'Cristóbal Parralo',
+    referentes: ['Eneko Jauregi','Bebé','Josep Señé'],
     titulares: [
       { nombre: 'Jesús Ruiz', dorsal: 1, posicion: 'POR' },
       { nombre: 'Julián Delmás', dorsal: 2, posicion: 'DEF' },

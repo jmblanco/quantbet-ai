@@ -321,16 +321,16 @@ function openTeamTactics(team: FichaEquipo) {
               </span>
             </div>
 
-            <!-- DESTACADO DE JUGADORES CLAVE -->
-            <div class="flex flex-wrap items-center gap-1 pt-1">
+            <!-- DESTACADO DE JUGADORES CLAVE / REFERENTES REALES -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-1">
               <span class="text-[10px] text-slate-500 font-mono">Referentes:</span>
               <span
-                v-for="jug in team.squad.titulares.filter((p: any) => p.esClave).slice(0, 3)"
-                :key="jug.nombre"
-                class="px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 flex items-center gap-1"
+                v-for="refName in (team.squad.referentes && team.squad.referentes.length > 0 ? team.squad.referentes : team.squad.titulares.filter((p: any) => p.posicion === 'DEL' || p.posicion === 'MED').slice(-3).map((p: any) => p.nombre))"
+                :key="refName"
+                class="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-semibold text-slate-200 flex items-center gap-1 shadow-sm"
               >
-                <Star class="h-2.5 w-2.5 text-amber-400 fill-amber-400" />
-                <span>{{ jug.nombre.split(' ').pop() }}</span>
+                <Star class="h-2.5 w-2.5 text-amber-400 fill-amber-400 shrink-0" />
+                <span>{{ refName }}</span>
               </span>
             </div>
           </div>

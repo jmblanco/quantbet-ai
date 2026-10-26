@@ -44,6 +44,7 @@ export interface AlineacionEquipo {
   sistema: string; // "4-3-3", "4-2-3-1", "3-5-2", "4-4-2", "5-3-2", "3-4-3"
   estado: 'CONFIRMADA' | 'PROBABLE';
   entrenador: string;
+  referentes: string[];
   titulares: Jugador[];
   suplentesDestacados: string[];
   bajas: BajaJugador[];
@@ -102,6 +103,11 @@ function generateSyntheticSquad(teamName: string): TeamTacticalProfile {
   return {
     sistema: defaultSystem,
     entrenador: coach,
+    referentes: [
+      `Goleador (${teamName})`,
+      `Mediapunta (${teamName})`,
+      `Capitán (${teamName})`
+    ],
     titulares,
     suplentes,
     bajasHabituales
@@ -151,6 +157,9 @@ export class SquadService {
       sistema: profile.sistema,
       estado: options?.forceConfirmed ? 'CONFIRMADA' : 'PROBABLE',
       entrenador: profile.entrenador,
+      referentes: profile.referentes || [
+        ...profile.titulares.filter(p => p.posicion === 'DEL' || p.posicion === 'MED').slice(-3).map(p => p.nombre)
+      ],
       titulares: profile.titulares,
       suplentesDestacados: profile.suplentes,
       bajas,

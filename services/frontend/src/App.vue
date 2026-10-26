@@ -65,6 +65,7 @@ export interface AlineacionEquipo {
   sistema: string;
   estado: 'CONFIRMADA' | 'PROBABLE';
   entrenador: string;
+  referentes?: string[];
   titulares: Jugador[];
   suplentesDestacados: string[];
   bajas: BajaJugador[];

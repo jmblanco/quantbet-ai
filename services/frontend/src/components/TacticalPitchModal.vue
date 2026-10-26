@@ -427,8 +427,8 @@ const pitchPlayerCoords = computed<PlayerPitchCoord[]>(() => {
                     </div>
 
                     <!-- Nombre y Posición -->
-                    <div class="mt-1 px-1.5 py-0.2 rounded bg-slate-950/90 border border-slate-800 text-[9px] font-bold text-white whitespace-nowrap shadow-md max-w-[70px] truncate">
-                      {{ item.jugador.nombre.split(' ').pop() }}
+                    <div class="mt-1 px-1.5 py-0.2 rounded bg-slate-950/90 border border-slate-800 text-[9px] font-bold text-white whitespace-nowrap shadow-md max-w-[70px] truncate" :title="item.jugador.nombre">
+                      {{ item.jugador.nombre.endsWith(' Jr.') ? item.jugador.nombre.replace(' Jr.', '') : item.jugador.nombre.split(' ').pop() }}
                     </div>
                   </div>
                 </div>

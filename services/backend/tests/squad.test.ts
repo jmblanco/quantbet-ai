@@ -14,6 +14,7 @@ describe('SquadService & Tactical Intelligence', () => {
     // Lucas Vázquez ya no pertenece a la plantilla del Real Madrid
     expect(squad.titulares.some(p => p.nombre === 'Lucas Vázquez')).toBe(false);
     expect(squad.suplentesDestacados.includes('Lucas Vázquez')).toBe(false);
+    expect(squad.referentes).toEqual(['Kylian Mbappé', 'Vinícius Jr.', 'Jude Bellingham']);
   });
 
   it('debe reflejar a Dani Carvajal como titular activo en el Getafe CF (no lesionado)', () => {
