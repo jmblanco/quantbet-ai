@@ -9,11 +9,32 @@ import { calculateExpectedValue } from '../core/math/expected-value.js';
 import { evaluateTeamFatigue } from '../core/math/fatigue.js';
 import { ingestHistoricalData } from '../ingestion/historical-loader.js';
 import { syncLiveQuiniela } from '../ingestion/live-quiniela-service.js';
+import { SquadService } from '../core/sports/squad-service.js';
+import { HeatmapService } from '../core/sports/heatmap-service.js';
 
-function enrichJornadaPartidos(jornada: any) {
-  const enrichedPartidos = jornada.partidos.map((partido: any) => {
+async function enrichJornadaPartidos(jornada: any) {
+  const enrichedPartidos = await Promise.all(jornada.partidos.map(async (partido: any) => {
+    const isDisputed = !!partido.resultadoSigno;
+    const squadReport = SquadService.getMatchSquadReport(
+      partido.equipoLocal,
+      partido.equipoVisitante,
+      isDisputed
+    );
+
+    const heatmapComparison = await HeatmapService.getMatchTacticalComparison(
+      partido.equipoLocal,
+      partido.equipoVisitante,
+      jornada.numero
+    );
+
     const pred = partido.predicciones[0];
-    if (!pred) return partido;
+    if (!pred) {
+      return {
+        ...partido,
+        squadReport,
+        heatmapComparison
+      };
+    }
 
     const homeFatigue = evaluateTeamFatigue({ team: partido.equipoLocal });
     const awayFatigue = evaluateTeamFatigue({ team: partido.equipoVisitante });
@@ -41,9 +62,19 @@ function enrichJornadaPartidos(jornada: any) {
       finalExplanation += ` [Factor Calendario: ${fatigued} ${fObj.warningNotice}]`;
     }
 
+    if (squadReport.ventajaPlantilla !== 'EQUILIBRADO') {
+      finalExplanation += ` [Plantillas: ${squadReport.resumenTactico}]`;
+    }
+
+    if (heatmapComparison.desequilibrioZonal) {
+      finalExplanation += ` [Mapa Calor: ${heatmapComparison.desequilibrioZonal}]`;
+    }
+
     return {
       ...partido,
       fatigueAlert,
+      squadReport,
+      heatmapComparison,
       predicciones: [
         {
           ...pred,
@@ -53,7 +84,7 @@ function enrichJornadaPartidos(jornada: any) {
         }
       ]
     };
-  });
+  }));
 
   return {
     ...jornada,
@@ -200,7 +231,8 @@ export async function registerRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'No se encontró ninguna jornada activa' });
     }
 
-    return reply.send(enrichJornadaPartidos(jornada));
+    const enriched = await enrichJornadaPartidos(jornada);
+    return reply.send(enriched);
   });
 
   // 4. Sincronización en vivo de la jornada actual bajo demanda
@@ -230,7 +262,7 @@ export async function registerRoutes(app: FastifyInstance) {
 
     return reply.send({
       message: 'Jornada en curso sincronizada con éxito',
-      jornada: jornada ? enrichJornadaPartidos(jornada) : null
+      jornada: jornada ? await enrichJornadaPartidos(jornada) : null
     });
   });
 
@@ -282,10 +314,31 @@ export async function registerRoutes(app: FastifyInstance) {
       autoFeedback = await predictionService.applyBayesianFeedbackFromJornada(jornada.id);
     }
 
+    const enriched = await enrichJornadaPartidos(jornada);
+
     return reply.send({
-      ...enrichJornadaPartidos(jornada),
+      ...enriched,
       autoFeedback
     });
+  });
+
+  // 5b. Mapa de calor y perfil espacial de un equipo
+  app.get('/api/equipos/:equipo/heatmap', {
+    schema: {
+      description: 'Obtiene el mapa de calor espacial, puntos calientes y ocupación zonal de un equipo',
+      tags: ['Táctica'],
+      params: {
+        type: 'object',
+        properties: {
+          equipo: { type: 'string' }
+        },
+        required: ['equipo']
+      }
+    }
+  }, async (req, reply) => {
+    const { equipo } = req.params as { equipo: string };
+    const data = await HeatmapService.getTeamHeatmap(equipo);
+    return reply.send(data);
   });
 
   // 4. Recalcular predicciones IA para una jornada

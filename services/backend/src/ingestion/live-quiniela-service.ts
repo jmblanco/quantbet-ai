@@ -2,6 +2,7 @@ import https from 'https';
 import * as cheerio from 'cheerio';
 import { prisma } from '../infrastructure/db.js';
 import { PredictionService } from '../core/services/prediction-service.js';
+import { HeatmapService } from '../core/sports/heatmap-service.js';
 
 export interface SelaeMatch {
   num: number;
@@ -255,6 +256,16 @@ export async function syncLiveQuiniela() {
     if (jData.estado === 'FINALIZADA' || allMatchesFinished) {
       console.log(`⚡ [Auto-Feedback] Retroalimentación automática activada para Jornada ${jData.numero}`);
       await predictionService.applyBayesianFeedbackFromJornada(jornada.id);
+
+      // Refresco táctico semanal de mapas de calor y perfiles espaciales
+      const finishedDisputed = jData.partidos.filter(m => !!m.resultadoSigno).map(m => ({
+        local: m.local,
+        visitante: m.away,
+        golesL: 1,
+        golesV: 0
+      }));
+      await HeatmapService.refreshWeeklyTacticalData(jData.numero, finishedDisputed);
+      console.log(`🗺️ [Heatmap] Mapas de calor espaciales actualizados semana a semana para Jornada ${jData.numero}`);
     }
   }
 

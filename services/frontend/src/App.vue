@@ -39,6 +39,91 @@ interface Prediccion {
   explanation?: string;
 }
 
+export interface Jugador {
+  nombre: string;
+  dorsal: number;
+  posicion: 'POR' | 'DEF' | 'MED' | 'DEL';
+  esClave?: boolean;
+  esCapitan?: boolean;
+}
+
+export interface BajaJugador {
+  jugador: string;
+  posicion: 'POR' | 'DEF' | 'MED' | 'DEL';
+  tipo: 'LESION' | 'SANCION' | 'DUDA' | 'ROTACION';
+  motivo: string;
+  gravedad: 'CRITICA' | 'MODERADA' | 'LEVE';
+  esClave: boolean;
+  tiempoEstimado?: string;
+}
+
+export interface AlineacionEquipo {
+  equipo: string;
+  sistema: string;
+  estado: 'CONFIRMADA' | 'PROBABLE';
+  entrenador: string;
+  titulares: Jugador[];
+  suplentesDestacados: string[];
+  bajas: BajaJugador[];
+  impacto: {
+    nivelAlerta: 'BAJO' | 'MEDIO' | 'ALTO' | 'CRITICO';
+    resumen: string;
+    factorOfensivo: number;
+    factorDefensivo: number;
+    bajasClaveCount: number;
+  };
+}
+
+export interface MatchSquadReport {
+  local: AlineacionEquipo;
+  visitante: AlineacionEquipo;
+  resumenTactico: string;
+  ventajaPlantilla: 'LOCAL' | 'VISITANTE' | 'EQUILIBRADO';
+}
+
+export interface PuntoCalor {
+  x: number;
+  y: number;
+  intensidad: number;
+  radio: number;
+  label: string;
+}
+
+export interface ZonasOcupacion {
+  defensivaIzquierda: number;
+  defensivaCentro: number;
+  defensivaDerecha: number;
+  medularIzquierda: number;
+  medularCentro: number;
+  medularDerecha: number;
+  ataqueIzquierda: number;
+  ataqueCentro: number;
+  ataqueDerecha: number;
+}
+
+export interface PerfilTacticoEspacial {
+  equipo: string;
+  ultimaJornadaActualizada: number;
+  flancoPreferente: 'BANDA_IZQUIERDA' | 'CENTRO' | 'BANDA_DERECHA' | 'EQUILIBRADO';
+  pctFlancoPreferente: number;
+  alturaMediaLineaMetros: number;
+  tipoBloque: 'BLOQUE_ALTO' | 'BLOQUE_MEDIO' | 'BLOQUE_BAJO';
+  presionUltimoTercioPct: number;
+  posesionMediaPct: number;
+  zonas: ZonasOcupacion;
+  puntosCalientes: PuntoCalor[];
+  resumenEspacial: string;
+}
+
+export interface MatchTacticalHeatmapComparison {
+  local: PerfilTacticoEspacial;
+  visitante: PerfilTacticoEspacial;
+  choqueEstilos: string;
+  desequilibrioZonal: string;
+  factorAjusteLocalLambda: number;
+  factorAjusteVisitanteLambda: number;
+}
+
 interface Partido {
   id: string;
   numeroCasilla: number;
@@ -56,6 +141,8 @@ interface Partido {
     badgeLabel: string;
     notice: string;
   } | null;
+  squadReport?: MatchSquadReport;
+  heatmapComparison?: MatchTacticalHeatmapComparison;
 }
 
 interface Jornada {

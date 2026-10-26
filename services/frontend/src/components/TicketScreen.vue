@@ -24,8 +24,11 @@ import {
   Award,
   Trophy,
   Activity,
-  Cpu
+  Cpu,
+  Compass
 } from 'lucide-vue-next';
+
+import TacticalPitchModal from './TacticalPitchModal.vue';
 
 interface Prediccion {
   prob1: string;
@@ -57,6 +60,8 @@ interface Partido {
     badgeLabel: string;
     notice: string;
   } | null;
+  squadReport?: any;
+  heatmapComparison?: any;
 }
 
 interface Jornada {
@@ -178,6 +183,14 @@ const detailedMode = ref(false);
 const activeFilter = ref<'all' | 'fijos' | 'sorpresas' | 'fatiga'>('all');
 const expandedCards = ref<Record<number, boolean>>({});
 const showAdjustmentsModal = ref(false);
+
+const selectedTacticalPartido = ref<Partido | null>(null);
+const showTacticalModal = ref(false);
+
+function openTacticalAnalysis(partido: Partido) {
+  selectedTacticalPartido.value = partido;
+  showTacticalModal.value = true;
+}
 
 function toggleExplanation(casilla: number) {
   expandedCards.value[casilla] = !expandedCards.value[casilla];
@@ -445,11 +458,34 @@ function handleCopy() {
           </div>
 
           <!-- Explicación desplegable -->
-          <div v-if="expandedCards[partido.numeroCasilla]" class="mt-3 pt-3 border-t border-slate-800/60 text-xs text-slate-300 bg-slate-950/50 p-3 rounded-xl animate-fade-in">
+          <div v-if="expandedCards[partido.numeroCasilla]" class="mt-3 pt-3 border-t border-slate-800/60 text-xs text-slate-300 bg-slate-950/50 p-3 rounded-xl animate-fade-in space-y-3">
             <p class="leading-relaxed">
               {{ partido.predicciones[0]?.explanation || 'Estimación probabilística basada en la tasa de goles esperados Dixon-Coles y el sesgo de las apuestas SELAE.' }}
             </p>
-            <div v-if="partido.predicciones[0]" class="mt-2 grid grid-cols-3 gap-2 text-center text-[11px] font-mono">
+
+            <!-- Previa Táctica & Botón de Pizarra -->
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="flex items-center gap-2 font-mono text-[11px]">
+                <Flame class="h-3.5 w-3.5 text-amber-400" />
+                <span class="text-slate-300">Táctica:</span>
+                <span class="text-emerald-400 font-bold">
+                  {{ partido.squadReport?.local.sistema || '4-3-3' }} vs {{ partido.squadReport?.visitante.sistema || '4-4-2' }}
+                </span>
+                <span v-if="partido.heatmapComparison?.local.flancoPreferente" class="text-slate-400 hidden sm:inline">
+                  • Ataque {{ partido.heatmapComparison.local.flancoPreferente.replace('BANDA_', '') }} ({{ partido.heatmapComparison.local.pctFlancoPreferente }}%)
+                </span>
+              </div>
+
+              <button
+                @click.stop="openTacticalAnalysis(partido)"
+                class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ml-auto"
+              >
+                <Compass class="h-3.5 w-3.5" />
+                <span>Abrir Pizarra & Mapa de Calor</span>
+              </button>
+            </div>
+
+            <div v-if="partido.predicciones[0]" class="grid grid-cols-3 gap-2 text-center text-[11px] font-mono">
               <div class="bg-slate-900 p-1.5 rounded-lg">1: {{ (Number(partido.predicciones[0].prob1) * 100).toFixed(0) }}% (EV {{ partido.predicciones[0].ev1 }})</div>
               <div class="bg-slate-900 p-1.5 rounded-lg">X: {{ (Number(partido.predicciones[0].probX) * 100).toFixed(0) }}% (EV {{ partido.predicciones[0].evX }})</div>
               <div class="bg-slate-900 p-1.5 rounded-lg">2: {{ (Number(partido.predicciones[0].prob2) * 100).toFixed(0) }}% (EV {{ partido.predicciones[0].ev2 }})</div>
@@ -706,6 +742,19 @@ function handleCopy() {
                     <span>Por disputar (Hoy 21:00h)</span>
                   </span>
 
+                  <!-- Botón de acceso directo a la Pizarra Táctica -->
+                  <button
+                    @click.stop="openTacticalAnalysis(partido)"
+                    class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-slate-300 hover:text-emerald-300 bg-slate-900 hover:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700/80 transition cursor-pointer"
+                    title="Ver Once, Bajas y Mapa de Calor Táctico"
+                  >
+                    <Flame class="h-3 w-3 text-amber-400" />
+                    <span>Pizarra</span>
+                    <span v-if="partido.squadReport" class="text-[9px] text-slate-400 font-mono">
+                      ({{ partido.squadReport.local.sistema }})
+                    </span>
+                  </button>
+
                   <button
                     @click="toggleExplanation(partido.numeroCasilla)"
                     class="text-slate-400 hover:text-emerald-400 text-[11px] underline ml-auto sm:ml-1 cursor-pointer flex items-center gap-0.5"
@@ -781,11 +830,34 @@ function handleCopy() {
           </div>
 
           <!-- Explicación desplegable bajo demanda -->
-          <div v-if="expandedCards[partido.numeroCasilla]" class="mt-3 pt-3 border-t border-slate-800/60 text-xs text-slate-300 bg-slate-950/50 p-3 rounded-xl animate-fade-in">
+          <div v-if="expandedCards[partido.numeroCasilla]" class="mt-3 pt-3 border-t border-slate-800/60 text-xs text-slate-300 bg-slate-950/50 p-3.5 rounded-xl animate-fade-in space-y-3">
             <p class="leading-relaxed">
               {{ partido.predicciones[0]?.explanation || 'Estimación probabilística basada en la tasa de goles esperados y el valor relativo frente a las apuestas SELAE.' }}
             </p>
-            <div v-if="partido.fatigueAlert" class="mt-2 text-amber-300 text-[11px] font-semibold flex items-center gap-1.5">
+
+            <!-- Previa Táctica y Mapa de Calor -->
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="flex items-center gap-2 font-mono text-[11px]">
+                <Flame class="h-3.5 w-3.5 text-amber-400" />
+                <span class="text-slate-300">Duelo Táctico:</span>
+                <span class="text-emerald-400 font-bold">
+                  {{ partido.squadReport?.local.sistema || '4-3-3' }} vs {{ partido.squadReport?.visitante.sistema || '4-4-2' }}
+                </span>
+                <span v-if="partido.heatmapComparison?.choqueEstilos" class="text-slate-400 hidden lg:inline truncate max-w-sm">
+                  • {{ partido.heatmapComparison.choqueEstilos }}
+                </span>
+              </div>
+
+              <button
+                @click.stop="openTacticalAnalysis(partido)"
+                class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ml-auto"
+              >
+                <Compass class="h-3.5 w-3.5" />
+                <span>Pizarra & Mapa de Calor</span>
+              </button>
+            </div>
+
+            <div v-if="partido.fatigueAlert" class="text-amber-300 text-[11px] font-semibold flex items-center gap-1.5">
               <Zap class="h-3.5 w-3.5" />
               <span>{{ partido.fatigueAlert.notice }}</span>
             </div>
@@ -867,5 +939,12 @@ function handleCopy() {
         </div>
       </div>
     </div>
+
+    <!-- MODAL DE PIZARRA TÁCTICA, ONCE Y MAPA DE CALOR -->
+    <TacticalPitchModal
+      :partido="selectedTacticalPartido"
+      :isOpen="showTacticalModal"
+      @close="showTacticalModal = false"
+    />
   </div>
 </template>
