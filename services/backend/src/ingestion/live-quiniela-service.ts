@@ -248,6 +248,14 @@ export async function syncLiveQuiniela() {
 
     // Generar predicciones analíticas con Dixon-Coles y EV
     await predictionService.generateJornadaPredictions(jornada.id);
+
+    // Si la jornada ha concluido (estado FINALIZADA o todos sus partidos con resultado),
+    // retroalimentar AUTOMÁTICAMENTE el modelo bayesiano
+    const allMatchesFinished = jData.partidos.length === 15 && jData.partidos.every(m => !!m.resultadoSigno);
+    if (jData.estado === 'FINALIZADA' || allMatchesFinished) {
+      console.log(`⚡ [Auto-Feedback] Retroalimentación automática activada para Jornada ${jData.numero}`);
+      await predictionService.applyBayesianFeedbackFromJornada(jornada.id);
+    }
   }
 
   // Además, registrar la Jornada 17 (Próxima jornada de Copa del Rey abierta para apuestas futuras)

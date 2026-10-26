@@ -67,55 +67,152 @@ export class PredictionService {
   }
 
   async applyBayesianFeedbackFromJornada(jornadaId: string): Promise<{
+    autoApplied: boolean;
+    appliedAt: string;
+    jornadaId: string;
     matchesEvaluated: number;
     adjustments: string[];
   }> {
     const jornada = await prisma.jornada.findUnique({
       where: { id: jornadaId },
       include: {
-        partidos: {
-          where: {
-            golesLocal: { not: null },
-            golesVisitante: { not: null }
-          }
-        }
+        partidos: true
       }
     });
 
     if (!jornada || jornada.partidos.length === 0) {
       return { 
+        autoApplied: true,
+        appliedAt: new Date().toISOString(),
+        jornadaId,
         matchesEvaluated: 0, 
-        adjustments: ['No se encontraron partidos con resultado finalizado en la jornada seleccionada.'] 
+        adjustments: ['No se encontraron partidos en la jornada seleccionada.'] 
       };
     }
 
     const allLogs: string[] = [];
+    let matchesEvaluated = 0;
 
     for (const partido of jornada.partidos) {
+      let goalsHome = partido.golesLocal;
+      let goalsAway = partido.golesVisitante;
+
+      // Si los goles explícitos no están informados pero sí el signo resultado
+      if ((goalsHome === null || goalsAway === null) && partido.resultadoSigno) {
+        if (partido.resultadoSigno === '1') {
+          goalsHome = 1;
+          goalsAway = 0;
+        } else if (partido.resultadoSigno === 'X') {
+          goalsHome = 1;
+          goalsAway = 1;
+        } else if (partido.resultadoSigno === '2') {
+          goalsHome = 0;
+          goalsAway = 1;
+        } else if (partido.resultadoSigno.includes('-')) {
+          const parts = partido.resultadoSigno.split('-');
+          goalsHome = parts[0] === 'M' ? 3 : Number(parts[0]) || 1;
+          goalsAway = parts[1] === 'M' ? 3 : Number(parts[1]) || 0;
+        }
+      }
+
+      if (goalsHome === null || goalsAway === null) continue;
+
       const homeStr = await this.getTeamStrength(partido.equipoLocal);
       const awayStr = await this.getTeamStrength(partido.equipoVisitante);
 
       const updateResult = updateStrengthsFromMatch({
         homeStrength: homeStr,
         awayStrength: awayStr,
-        goalsHome: partido.golesLocal!,
-        goalsAway: partido.golesVisitante!
+        goalsHome,
+        goalsAway
       });
 
       await this.saveTeamStrength(updateResult.updatedHomeStrength);
       await this.saveTeamStrength(updateResult.updatedAwayStrength);
 
       allLogs.push(...updateResult.adjustmentLog);
+      matchesEvaluated++;
     }
 
-    // Invalidar caché de jornadas y ratings
+    const feedbackRecord = {
+      autoApplied: true,
+      appliedAt: new Date().toISOString(),
+      jornadaId,
+      matchesEvaluated,
+      adjustments: allLogs
+    };
+
+    // Registrar en Valkey que esta jornada ya retroalimentó el modelo
     try {
+      await valkey.set(`bayesian:retrofeed:applied:${jornadaId}`, JSON.stringify(feedbackRecord));
       await valkey.del('cache:jornadas:list');
     } catch (e) {}
 
+    return feedbackRecord;
+  }
+
+  /**
+   * Retroalimenta automáticamente el modelo con todas las jornadas finalizadas
+   * que aún no hayan sido procesadas, en estricto orden cronológico.
+   */
+  async autoRetrofeedAllFinishedJornadas(): Promise<{
+    processedCount: number;
+    jornadasProcessed: Array<{ id: string; numero: number; matchesEvaluated: number }>;
+  }> {
+    const finishedJornadas = await prisma.jornada.findMany({
+      where: {
+        OR: [
+          { estado: 'FINALIZADA' },
+          {
+            partidos: {
+              every: {
+                OR: [
+                  { golesLocal: { not: null }, golesVisitante: { not: null } },
+                  { resultadoSigno: { not: null } }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      orderBy: { fechaCierre: 'asc' },
+      include: {
+        partidos: true
+      }
+    });
+
+    const processedList: Array<{ id: string; numero: number; matchesEvaluated: number }> = [];
+
+    for (const j of finishedJornadas) {
+      if (!j.partidos || j.partidos.length === 0) continue;
+
+      const cacheKey = `bayesian:retrofeed:applied:${j.id}`;
+      let already = null;
+      try {
+        already = await valkey.get(cacheKey);
+      } catch (e) {}
+
+      if (!already) {
+        console.log(`⚡ [Auto-Feedback] Retroalimentando modelo con Jornada ${j.numero} (${j.id})...`);
+        const result = await this.applyBayesianFeedbackFromJornada(j.id);
+        processedList.push({
+          id: j.id,
+          numero: j.numero,
+          matchesEvaluated: result.matchesEvaluated
+        });
+      }
+    }
+
+    if (processedList.length > 0) {
+      console.log(`✅ [Auto-Feedback] ${processedList.length} jornadas finalizadas retroalimentadas automáticamente.`);
+      try {
+        await valkey.del('cache:jornadas:list');
+      } catch (e) {}
+    }
+
     return {
-      matchesEvaluated: jornada.partidos.length,
-      adjustments: allLogs
+      processedCount: processedList.length,
+      jornadasProcessed: processedList
     };
   }
 

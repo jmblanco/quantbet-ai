@@ -65,6 +65,12 @@ export async function registerRoutes(app: FastifyInstance) {
   const predictionService = new PredictionService();
   const metricsService = new MetricsService();
 
+  // Retroalimentación Bayesiana Automática:
+  // Al arrancar o registrar rutas, asegura que todas las jornadas finalizadas hayan recalibrado el modelo
+  predictionService.autoRetrofeedAllFinishedJornadas().catch(err => {
+    console.error('Error en retroalimentación automática al iniciar:', err);
+  });
+
   // 1. Healthcheck
   app.get('/api/health', {
     schema: {
@@ -265,7 +271,21 @@ export async function registerRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Jornada no encontrada' });
     }
 
-    return reply.send(enrichJornadaPartidos(jornada));
+    let autoFeedback: any = null;
+    try {
+      const autoFeedbackRaw = await valkey.get(`bayesian:retrofeed:applied:${id}`);
+      autoFeedback = autoFeedbackRaw ? JSON.parse(autoFeedbackRaw) : null;
+    } catch (e) {}
+
+    const isComplete = jornada.estado === 'FINALIZADA' || (jornada.partidos.length === 15 && jornada.partidos.every(p => !!p.resultadoSigno));
+    if (!autoFeedback && isComplete) {
+      autoFeedback = await predictionService.applyBayesianFeedbackFromJornada(jornada.id);
+    }
+
+    return reply.send({
+      ...enrichJornadaPartidos(jornada),
+      autoFeedback
+    });
   });
 
   // 4. Recalcular predicciones IA para una jornada

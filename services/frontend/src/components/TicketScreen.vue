@@ -23,7 +23,8 @@ import {
   Filter,
   Award,
   Trophy,
-  Activity
+  Activity,
+  Cpu
 } from 'lucide-vue-next';
 
 interface Prediccion {
@@ -69,6 +70,12 @@ interface Jornada {
   temporada?: {
     codigo: string;
   };
+  autoFeedback?: {
+    autoApplied: boolean;
+    appliedAt: string;
+    matchesEvaluated: number;
+    adjustments: string[];
+  } | null;
 }
 
 const props = defineProps<{
@@ -156,6 +163,14 @@ const prizeCategoryLabel = computed(() => {
   if (h === 11) return '4ª Categoría (11 Aciertos)';
   if (h === 10) return '5ª Categoría (10 Aciertos)';
   return 'Fuera de premios oficiales (<10)';
+});
+
+// Retroalimentación automática obtenida de la jornada o del último evento
+const effectiveFeedback = computed(() => {
+  if (props.lastFeedbackInfo && props.lastFeedbackInfo.jornadaId === props.jornada?.id) {
+    return props.lastFeedbackInfo;
+  }
+  return props.jornada?.autoFeedback;
 });
 
 // Toggle entre Vista Rápida (sin saturación) y Vista Cuántica (con desglose % y EV)
@@ -260,11 +275,11 @@ function handleCopy() {
             </h1>
 
             <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Comparativa entre los marcadores oficiales de SELAE y las recomendaciones del modelo matemático Dixon-Coles. Puedes retroalimentar los parámetros Bayesianos del modelo con esta jornada para calibrar las fuerzas relativas de los equipos sin reentrenar de cero.
+              Comparativa entre los marcadores oficiales de SELAE y las recomendaciones del modelo matemático Dixon-Coles. El modelo se <strong>retroalimenta automáticamente</strong> tras cada jornada concluida para calibrar las fuerzas de ataque y defensa sin necesidad de reentrenar de cero ni requerir acción manual.
             </p>
           </div>
 
-          <!-- Tarjeta de Aciertos y Acción de Retroalimentación -->
+          <!-- Tarjeta de Aciertos y Estado de Retroalimentación Automática -->
           <div class="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 shrink-0 space-y-3 min-w-[280px]">
             <div class="flex items-center justify-between text-xs text-slate-400">
               <span class="font-bold text-slate-200">Aciertos del Modelo:</span>
@@ -281,36 +296,61 @@ function handleCopy() {
               <span class="font-semibold">{{ prizeCategoryLabel }}</span>
             </div>
 
-            <!-- BOTÓN DESTACADO: RETROALIMENTAR MODELO -->
-            <button
-              @click="emit('runBayesianFeedback', jornada.id)"
-              :disabled="executingFeedback"
-              class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black text-xs sm:text-sm transition shadow-lg shadow-emerald-500/25 cursor-pointer disabled:opacity-50"
-            >
-              <RotateCcw class="h-4 w-4" :class="{ 'animate-spin': executingFeedback }" />
-              <span>{{ executingFeedback ? 'Retroalimentando modelo...' : '⚡ Retroalimentar Modelo con esta Jornada' }}</span>
-            </button>
+            <!-- ESTADO DE RETROALIMENTACIÓN BAYESIANA AUTOMÁTICA -->
+            <div class="pt-2 border-t border-slate-800/80 space-y-2">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-slate-300 font-bold flex items-center gap-1.5">
+                  <Cpu class="h-3.5 w-3.5 text-teal-400" />
+                  <span>Calibración Bayesiana:</span>
+                </span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-teal-500/10 text-teal-300 border border-teal-500/20 flex items-center gap-1">
+                  <CheckCircle2 class="h-3 w-3 text-emerald-400" />
+                  <span>AUTOMÁTICA</span>
+                </span>
+              </div>
+
+              <div class="text-[10px] text-slate-400 leading-tight">
+                Parámetros de ataque (&alpha;) y defensa (&beta;) actualizados tras la finalización de los partidos.
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <button 
+                  v-if="effectiveFeedback?.adjustments"
+                  @click="showAdjustmentsModal = !showAdjustmentsModal"
+                  class="text-teal-400 hover:text-teal-300 underline text-[11px] cursor-pointer flex items-center gap-1"
+                >
+                  <span>{{ showAdjustmentsModal ? 'Ocultar ajustes' : `Ver ${effectiveFeedback.adjustments.length} variaciones` }}</span>
+                  <component :is="showAdjustmentsModal ? ChevronUp : ChevronDown" class="h-3 w-3" />
+                </button>
+                <span v-else class="text-[10px] text-slate-500">Ajustes consolidados</span>
+
+                <button
+                  @click="emit('runBayesianFeedback', jornada.id)"
+                  :disabled="executingFeedback"
+                  title="Forzar recalibración manual si es necesario"
+                  class="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 cursor-pointer transition disabled:opacity-50"
+                >
+                  <RotateCcw class="h-3 w-3" :class="{ 'animate-spin': executingFeedback }" />
+                  <span>Recalibrar</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- BANNER DE RETROALIMENTACIÓN BAYESIANA COMPLETADA -->
-      <div v-if="lastFeedbackInfo && lastFeedbackInfo.jornadaId === jornada.id" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 space-y-2 animate-fade-in">
+      <!-- DESGLOSE DE VARIACIONES DE RETROALIMENTACIÓN AUTOMÁTICA -->
+      <div v-if="showAdjustmentsModal && effectiveFeedback?.adjustments" class="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-xs text-teal-300 space-y-2 animate-fade-in">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 font-black">
+          <div class="flex items-center gap-2 font-black text-white">
             <CheckCircle2 class="h-4 w-4 text-emerald-400" />
-            <span>¡Modelo Calibrado! Se evaluaron {{ lastFeedbackInfo.matchesEvaluated }} partidos de la Jornada {{ jornada.numero }}.</span>
+            <span>Ajustes Bayesianos aplicados automáticamente para la Jornada {{ jornada.numero }}:</span>
           </div>
-          <button 
-            @click="showAdjustmentsModal = !showAdjustmentsModal"
-            class="text-emerald-400 underline text-[11px] cursor-pointer"
-          >
-            {{ showAdjustmentsModal ? 'Ocultar ajustes' : 'Ver variaciones de ataque/defensa' }}
-          </button>
+          <span class="text-[11px] font-mono text-slate-400">{{ effectiveFeedback.adjustments.length }} clubes ajustados</span>
         </div>
 
-        <div v-if="showAdjustmentsModal" class="mt-2 pt-2 border-t border-emerald-500/20 max-h-48 overflow-y-auto space-y-1 font-mono text-[11px]">
-          <div v-for="(adj, idx) in lastFeedbackInfo.adjustments" :key="idx" class="text-slate-300">
+        <div class="mt-2 pt-2 border-t border-teal-500/20 max-h-48 overflow-y-auto space-y-1 font-mono text-[11px]">
+          <div v-for="(adj, idx) in effectiveFeedback.adjustments" :key="idx" class="text-slate-300">
             {{ adj }}
           </div>
         </div>
