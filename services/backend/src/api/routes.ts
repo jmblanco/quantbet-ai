@@ -560,13 +560,13 @@ export async function registerRoutes(app: FastifyInstance) {
     schema: {
       description: 'Encola un trabajo manual en una de las colas BullMQ (sync-live, tactical-refresh, bayesian-feedback, squad-audit, historical-ingest)',
       tags: ['Colas'],
-      params: z.object({
-        queueKey: z.string()
-      }),
-      body: z.object({
-        jobName: z.string().optional(),
-        payload: z.record(z.any()).optional()
-      }).optional()
+      params: {
+        type: 'object',
+        properties: {
+          queueKey: { type: 'string' }
+        },
+        required: ['queueKey']
+      }
     }
   }, async (req, reply) => {
     const { queueKey } = req.params as { queueKey: string };
@@ -606,8 +606,13 @@ export async function registerRoutes(app: FastifyInstance) {
     schema: {
       description: 'Pausa o reanuda una cola BullMQ',
       tags: ['Colas'],
-      params: z.object({ queueKey: z.string() }),
-      body: z.object({ pause: z.boolean() })
+      params: {
+        type: 'object',
+        properties: {
+          queueKey: { type: 'string' }
+        },
+        required: ['queueKey']
+      }
     }
   }, async (req, reply) => {
     const { queueKey } = req.params as { queueKey: string };
