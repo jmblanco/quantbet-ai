@@ -25,6 +25,7 @@ import LiveScreen from './components/LiveScreen.vue';
 import ReductionsScreen from './components/ReductionsScreen.vue';
 import AnalyticsScreen from './components/AnalyticsScreen.vue';
 import TeamsScreen from './components/TeamsScreen.vue';
+import QueuesScreen from './components/QueuesScreen.vue';
 import MethodologyModal from './components/MethodologyModal.vue';
 
 interface Prediccion {
@@ -159,8 +160,8 @@ interface Jornada {
   };
 }
 
-// 5 Pantallas principales según intención de usuario
-type ScreenTab = 'boleto' | 'live' | 'equipos' | 'reducciones' | 'metricas';
+// 6 Pantallas principales según intención de usuario
+type ScreenTab = 'boleto' | 'live' | 'equipos' | 'reducciones' | 'metricas' | 'colas';
 const activeTab = ref<ScreenTab>('boleto');
 
 const showMethodologyModal = ref(false);
@@ -606,6 +607,14 @@ onMounted(async () => {
           >
             <span>📊 12 Temporadas</span>
           </button>
+
+          <button
+            @click="activeTab = 'colas'"
+            :class="activeTab === 'colas' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
+            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>⚡ Colas & Refresco</span>
+          </button>
         </nav>
 
         <!-- Selector de Jornada & Botón Metodología -->
@@ -669,6 +678,13 @@ onMounted(async () => {
           class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
         >
           📊 12 Temporadas
+        </button>
+        <button
+          @click="activeTab = 'colas'"
+          :class="activeTab === 'colas' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
+          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+        >
+          ⚡ Colas & Refresco
         </button>
       </div>
     </header>
@@ -748,7 +764,7 @@ onMounted(async () => {
           @copyPronostico="copyPronosticoToClipboard"
         />
 
-        <!-- PANTALLA 4: MOTOR CUÁNTICO & AUDITORÍA (12 TEMPORADAS) -->
+        <!-- PANTALLA 5: MOTOR CUÁNTICO & AUDITORÍA (12 TEMPORADAS) -->
         <AnalyticsScreen
           v-else-if="activeTab === 'metricas'"
           :metricas="metricas"
@@ -757,6 +773,11 @@ onMounted(async () => {
           :executingFeedback="executingFeedback"
           :lastFeedbackInfo="lastFeedbackInfo"
           @runBayesianFeedback="runBayesianFeedback"
+        />
+
+        <!-- PANTALLA 6: MONITOR DE COLAS Y REFRESCO ASÍNCRONO (BULLMQ) -->
+        <QueuesScreen
+          v-else-if="activeTab === 'colas'"
         />
       </div>
     </main>
