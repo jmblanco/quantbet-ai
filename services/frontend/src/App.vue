@@ -598,41 +598,41 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
-    <!-- TOP NAVIGATION BAR (PROFESIONAL & SIN DISTRACCIONES) -->
-    <header class="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80">
-      <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <!-- TOP NAVIGATION BAR (PROFESIONAL, RESPONSIVE & SIN DESBORDAMIENTOS) -->
+    <header class="sticky top-0 z-50 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80">
+      <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2 sm:gap-4">
         <!-- Logo y Badge de Marca -->
         <button
           @click="activeTab = 'boleto'"
-          class="flex items-center gap-3 cursor-pointer group text-left bg-transparent border-none p-0 focus:outline-none select-none"
+          class="flex items-center gap-2.5 cursor-pointer group text-left bg-transparent border-none p-0 focus:outline-none select-none shrink-0"
           title="Ir al Boleto Principal (QuantBet AI)"
         >
-          <div class="h-10 w-10 rounded-2xl bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:border-emerald-500/50 group-hover:shadow-emerald-500/25 transition overflow-hidden shrink-0">
+          <div class="h-9 w-9 rounded-xl bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:border-emerald-500/50 group-hover:shadow-emerald-500/25 transition overflow-hidden shrink-0">
             <img src="/brand-logo.svg" alt="QuantBet AI Logo" class="h-full w-full object-contain" />
           </div>
-          <div>
-            <div class="flex items-center gap-2">
+          <div class="shrink-0">
+            <div class="flex items-center gap-1.5">
               <span class="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-emerald-400 transition">QuantBet</span>
-              <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI</span>
+              <span class="text-[9px] font-black uppercase px-1 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 leading-none">AI</span>
             </div>
-            <p class="text-[10px] text-slate-400 hidden sm:block">Inteligencia Probabilística en Apuestas</p>
+            <p class="text-[10px] text-slate-400 hidden xl:block leading-tight">Inteligencia Probabilística 1X2</p>
           </div>
         </button>
 
-        <!-- Pestañas de Navegación (Centradas) -->
-        <nav class="hidden md:flex items-center p-1 bg-slate-900 border border-slate-800 rounded-2xl">
+        <!-- Pestañas de Navegación (Centradas y con whitespace-nowrap) -->
+        <nav class="hidden md:flex items-center p-1 bg-slate-900/90 border border-slate-800 rounded-2xl shrink-0">
           <button
             @click="activeTab = 'boleto'"
             :class="activeTab === 'boleto' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
-            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
           >
-            <span>🎫 Boleto IA</span>
+            <span>🎫 Boleto</span>
           </button>
 
           <button
             @click="activeTab = 'live'"
             :class="activeTab === 'live' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
-            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
           >
             <span class="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse"></span>
             <span>🔴 En Vivo</span>
@@ -641,104 +641,109 @@ onMounted(async () => {
           <button
             @click="activeTab = 'equipos'"
             :class="activeTab === 'equipos' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
-            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
           >
-            <span>🛡️ Clubes & Táctica</span>
+            <span>🛡️ Clubes</span>
           </button>
 
           <button
             @click="activeTab = 'reducciones'"
             :class="activeTab === 'reducciones' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
-            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
           >
-            <span>🧮 Reductor al 13/12</span>
+            <span>🧮 Reductor</span>
           </button>
 
           <button
             @click="activeTab = 'metricas'"
             :class="activeTab === 'metricas' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
-            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
           >
-            <span>📊 12 Temporadas</span>
+            <span>📊 Histórico</span>
           </button>
 
           <button
             @click="activeTab = 'colas'"
             :class="activeTab === 'colas' ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'"
-            class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
           >
-            <span>⚡ Colas & Refresco</span>
+            <span>⚡ Workers</span>
           </button>
         </nav>
 
-        <!-- Selector de Jornada & Botón Metodología -->
-        <div class="flex items-center gap-2">
+        <!-- Selector de Jornada & Botón Metodología (A la derecha, acotado y estable) -->
+        <div class="flex items-center gap-2 shrink-0">
           <button
             @click="showMethodologyModal = true"
-            class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold transition cursor-pointer"
+            class="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold transition cursor-pointer shrink-0"
+            title="Metodología Matemática Dixon-Coles y Reducciones"
           >
             <HelpCircle class="h-3.5 w-3.5 text-emerald-400" />
-            <span>Método</span>
+            <span class="hidden xl:inline">Método</span>
           </button>
 
-          <div v-if="jornada" class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm text-xs">
+          <div v-if="jornada" class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm text-xs shrink-0">
             <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
             <select
               v-model="selectedJornadaId"
               @change="fetchJornada(selectedJornadaId)"
-              class="bg-transparent text-slate-200 text-xs font-bold focus:outline-none cursor-pointer pr-1"
+              class="bg-transparent text-slate-200 text-xs font-bold focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[185px] truncate pr-1"
             >
               <option v-for="j in availableJornadas" :key="j.id" :value="j.id" class="bg-slate-950 text-slate-200">
-                Jornada {{ j.numero }} • {{ j.estado === 'EN_JUEGO' ? '🔴 En Juego' : j.estado === 'FINALIZADA' ? '✓ Finalizada' : '🗓 Programada' }}
+                Jornada {{ j.numero }} {{ j.estado === 'EN_JUEGO' ? '• 🔴 En Juego' : j.estado === 'FINALIZADA' ? '• ✓ Final' : '• 🗓 Prog.' }}
               </option>
             </select>
+          </div>
+          <div v-else class="flex items-center gap-1.5 bg-slate-900/60 border border-slate-800/60 rounded-xl px-2.5 py-1.5 text-xs text-slate-500 shrink-0">
+            <span class="h-2 w-2 rounded-full bg-slate-600 animate-pulse shrink-0"></span>
+            <span class="font-mono text-xs">Jornada 16</span>
           </div>
         </div>
       </div>
 
-      <!-- Pestañas Móviles (Scroll horizontal) -->
-      <div class="flex md:hidden items-center px-4 py-2 border-t border-slate-800/60 overflow-x-auto gap-2 text-xs">
+      <!-- Pestañas Móviles (Scroll horizontal suave) -->
+      <div class="flex md:hidden items-center px-4 py-2 border-t border-slate-800/60 overflow-x-auto gap-1.5 text-xs">
         <button
           @click="activeTab = 'boleto'"
           :class="activeTab === 'boleto' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
-          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl shrink-0 cursor-pointer whitespace-nowrap"
         >
-          🎫 Boleto IA
+          🎫 Boleto
         </button>
         <button
           @click="activeTab = 'live'"
           :class="activeTab === 'live' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
-          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl shrink-0 cursor-pointer whitespace-nowrap"
         >
           🔴 En Vivo
         </button>
         <button
           @click="activeTab = 'equipos'"
           :class="activeTab === 'equipos' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
-          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl shrink-0 cursor-pointer whitespace-nowrap"
         >
           🛡️ Clubes
         </button>
         <button
           @click="activeTab = 'reducciones'"
           :class="activeTab === 'reducciones' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
-          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl shrink-0 cursor-pointer whitespace-nowrap"
         >
           🧮 Reductor
         </button>
         <button
           @click="activeTab = 'metricas'"
           :class="activeTab === 'metricas' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
-          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl shrink-0 cursor-pointer whitespace-nowrap"
         >
-          📊 12 Temporadas
+          📊 Histórico
         </button>
         <button
           @click="activeTab = 'colas'"
           :class="activeTab === 'colas' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400'"
-          class="px-3 py-1 rounded-xl shrink-0 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl shrink-0 cursor-pointer whitespace-nowrap"
         >
-          ⚡ Colas & Refresco
+          ⚡ Workers
         </button>
       </div>
     </header>

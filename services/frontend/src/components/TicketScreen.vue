@@ -520,14 +520,16 @@ function handleCopy() {
               </span>
             </div>
 
-            <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-3">
-              Quiniela de Esta Semana
-              <span class="text-slate-600 font-light">|</span>
-              <span class="text-amber-400 font-black flex items-center gap-2">
-                <Coins class="h-7 w-7 text-amber-400" />
-                {{ Number(jornada.bote || 3442752).toLocaleString('es-ES') }} € en Bote
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                Quiniela de Esta Semana
+              </h1>
+              <span class="hidden sm:inline text-slate-600 font-light text-2xl">|</span>
+              <span class="text-amber-400 font-black text-xl sm:text-2xl flex items-center gap-1.5 font-mono">
+                <Coins class="h-6 w-6 text-amber-400 shrink-0" />
+                <span>{{ Math.round(Number(jornada.bote || 3442752)).toLocaleString('es-ES') }} € en Bote</span>
               </span>
-            </h1>
+            </div>
 
             <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
               Las 15 casillas han sido pronosticadas mediante modelos bivariados de <strong>Dixon-Coles</strong> optimizando el <strong>Expected Value (EV)</strong> frente al sesgo del público. Elige tu presupuesto, ajusta casillas a tu gusto y descarga el boleto oficial.
