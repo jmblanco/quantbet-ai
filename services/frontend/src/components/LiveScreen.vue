@@ -71,7 +71,7 @@ const userHits = computed(() => {
 const aiHits = computed(() => {
   let hits = 0;
   for (const p of finishedMatches.value) {
-    const rec = p.predicciones[0]?.recomendacionSigno;
+    const rec = p.predicciones?.[0]?.recomendacionSigno;
     if (p.resultadoSigno && rec && rec.includes(p.resultadoSigno)) {
       hits++;
     }
@@ -270,7 +270,7 @@ const prizeCategories = computed(() => {
               Signo Oficial: <strong class="text-white font-mono">{{ p.resultadoSigno || 'Pendiente' }}</strong>
             </span>
             <span class="text-slate-400 text-[11px]">
-              IA Sugirió: <strong class="text-emerald-400 font-mono">{{ p.predicciones[0]?.recomendacionSigno || '1' }}</strong>
+              IA Sugirió: <strong class="text-emerald-400 font-mono">{{ p.predicciones?.[0]?.recomendacionSigno || '1' }}</strong>
             </span>
           </div>
         </div>

@@ -202,13 +202,13 @@ const filteredPartidos = computed(() => {
 
   if (activeFilter.value === 'fijos') {
     return partidos.filter(p => {
-      const pred = p.predicciones[0];
-      return pred && pred.recomendacionSigno.length === 1;
+      const pred = p.predicciones?.[0];
+      return pred && pred.recomendacionSigno?.length === 1;
     });
   }
   if (activeFilter.value === 'sorpresas') {
     return partidos.filter(p => {
-      const pred = p.predicciones[0];
+      const pred = p.predicciones?.[0];
       return pred && (pred.verdictBadge?.includes('SORPRESA') || Number(pred.evX) > 1.2 || Number(pred.ev2) > 1.2);
     });
   }
@@ -392,9 +392,9 @@ function handleCopy() {
 
                   <!-- Badge Sorpresa / Fatiga -->
                   <span
-                    v-if="partido.predicciones[0]?.verdictBadge"
+                    v-if="partido.predicciones?.[0]?.verdictBadge"
                     class="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shrink-0"
-                    :class="partido.predicciones[0].verdictBadge.includes('BANCO') ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'"
+                    :class="partido.predicciones[0]?.verdictBadge?.includes('BANCO') ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'"
                   >
                     {{ partido.predicciones[0].verdictBadge }}
                   </span>
@@ -692,9 +692,9 @@ function handleCopy() {
 
                   <!-- Badges Compactos -->
                   <span
-                    v-if="partido.predicciones[0]?.verdictBadge"
+                    v-if="partido.predicciones?.[0]?.verdictBadge"
                     class="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shrink-0"
-                    :class="partido.predicciones[0].verdictBadge.includes('BANCO') ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'"
+                    :class="partido.predicciones[0]?.verdictBadge?.includes('BANCO') ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'"
                   >
                     {{ partido.predicciones[0].verdictBadge }}
                   </span>
@@ -776,7 +776,7 @@ function handleCopy() {
                   userSelections[partido.numeroCasilla]?.[signo]
                     ? 'bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/20 border-emerald-400'
                     : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700/80',
-                  partido.predicciones[0]?.recomendacionSigno.includes(signo) && !userSelections[partido.numeroCasilla]?.[signo]
+                  partido.predicciones?.[0]?.recomendacionSigno?.includes(signo) && !userSelections[partido.numeroCasilla]?.[signo]
                     ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/5'
                     : '',
                   partido.resultadoSigno === signo

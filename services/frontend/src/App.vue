@@ -239,6 +239,15 @@ const reductionRatioPct = computed(() => {
 // Cargar Jornada
 async function fetchJornada(targetId?: string) {
   loading.value = true;
+  
+  // Timeout de seguridad: el spinner jamás debe persistir más de 3.5 segundos
+  const watchdog = setTimeout(() => {
+    if (loading.value) {
+      console.warn('Watchdog: forzando fin de estado loading tras 3.5s');
+      loading.value = false;
+    }
+  }, 3500);
+
   try {
     let data;
     const cacheBuster = `t=${Date.now()}`;
@@ -266,6 +275,7 @@ async function fetchJornada(targetId?: string) {
   } catch (err) {
     console.error('Error cargando jornada:', err);
   } finally {
+    clearTimeout(watchdog);
     loading.value = false;
   }
 
@@ -331,7 +341,7 @@ function generateBestSelections(doubleCountTarget: number) {
 
   // Analizamos cada partido para ordenar sus 3 signos por mérito probabilístico y valor esperado (EV)
   const matchOptions = matches.map(p => {
-    const pred = p.predicciones[0];
+    const pred = p.predicciones?.[0];
     const p1 = Number(pred?.prob1 || 0.38);
     const pX = Number(pred?.probX || 0.28);
     const p2 = Number(pred?.prob2 || 0.34);
@@ -374,7 +384,7 @@ function generateBestSelections(doubleCountTarget: number) {
       let s2 = m.signs[1].sign;
 
       // Si la IA ya recomendó un doble específico (ej: '1X', '12', 'X2'), lo respetamos
-      if (m.rec.length === 2 && ['1', 'X', '2'].includes(m.rec[0]) && ['1', 'X', '2'].includes(m.rec[1])) {
+      if (m.rec && m.rec.length === 2 && ['1', 'X', '2'].includes(m.rec[0]) && ['1', 'X', '2'].includes(m.rec[1])) {
         s1 = m.rec[0] as '1' | 'X' | '2';
         s2 = m.rec[1] as '1' | 'X' | '2';
       }
@@ -387,7 +397,7 @@ function generateBestSelections(doubleCountTarget: number) {
     } else {
       // Fijo: mejor signo único por mérito probabilístico / EV
       let s1 = m.signs[0].sign;
-      if (m.rec.length === 1 && ['1', 'X', '2'].includes(m.rec)) {
+      if (m.rec && m.rec.length === 1 && ['1', 'X', '2'].includes(m.rec)) {
         s1 = m.rec as '1' | 'X' | '2';
       }
 
@@ -402,7 +412,7 @@ function generateBestSelections(doubleCountTarget: number) {
   // Pleno 15: Marcador recomendado
   const p15 = jornada.value.partidos.find(p => p.numeroCasilla === 15);
   if (p15) {
-    const rec15 = p15.predicciones[0]?.recomendacionSigno;
+    const rec15 = p15.predicciones?.[0]?.recomendacionSigno;
     if (rec15 && rec15.includes('-')) {
       const parts = rec15.split('-');
       pleno15Score.value = { home: parts[0] || '1', away: parts[1] || '2' };
