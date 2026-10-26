@@ -318,6 +318,42 @@ const selectedHistoricalSeason = ref<string>('ALL');
             <div class="text-[11px] font-mono text-teal-300">Ganancia: +49.6% ROI EV</div>
           </div>
         </div>
+
+        <!-- PANEL DE COBERTURA MULTILIGA & SELECCIONES (COMPETICIONES TRANSFRONTERIZAS) -->
+        <div class="p-5 rounded-2xl bg-slate-950/80 border border-teal-500/20 space-y-3 mt-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🌍</span>
+              <span class="font-bold text-white text-xs sm:text-sm">Infraestructura Multiliga: Champions League, Selecciones FIFA & Hypermotion</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-teal-500/20 text-teal-300 border border-teal-500/30">
+              UNIFIED ELO BRIDGE
+            </span>
+          </div>
+
+          <p class="text-xs text-slate-300 leading-relaxed">
+            La Quiniela no es sólo Primera División: el <strong>45% de las jornadas</strong> abarcan partidos transfronterizos (Champions League los miércoles, ventanas FIFA de selecciones nacionales o Segunda División). QuantBet AI utiliza una <strong>escala unificada Elo continua</strong> y <strong>coeficientes de liga UEFA (&gamma;)</strong> para conectar grafos disconexos cuando dos equipos nunca se han enfrentado en competición doméstica.
+          </p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[11px]">
+            <div class="bg-slate-900 p-2 rounded-xl text-center">
+              <span class="text-[10px] text-slate-500 block">Champions / Europa</span>
+              <span class="font-bold text-teal-300">80.0% Acierto (J15)</span>
+            </div>
+            <div class="bg-slate-900 p-2 rounded-xl text-center">
+              <span class="text-[10px] text-slate-500 block">Selecciones FIFA</span>
+              <span class="font-bold text-teal-300">73.3% Acierto (J10)</span>
+            </div>
+            <div class="bg-slate-900 p-2 rounded-xl text-center">
+              <span class="text-[10px] text-slate-500 block">Sede Neutral</span>
+              <span class="font-bold text-amber-400">Factor Campo = 0</span>
+            </div>
+            <div class="bg-slate-900 p-2 rounded-xl text-center">
+              <span class="text-[10px] text-slate-500 block">Históricos Globales</span>
+              <span class="font-bold text-emerald-400">45.000+ Partidos</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
