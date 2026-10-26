@@ -604,12 +604,42 @@ function handleCopy() {
         </div>
       </div>
 
+      <!-- BANNER DE ESTADO EN VIVO (PARTIDOS DISPUTADOS & ACIERTOS IA EN TIEMPO REAL) -->
+      <div v-if="hasFinishedMatches && !isJornadaFinalizada" class="p-3.5 sm:p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fade-in shadow-lg">
+        <div class="flex items-center gap-2.5">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span class="font-bold text-white">Escrutinio en Directo:</span>
+          <span class="text-slate-300 font-mono">{{ finishedMatches.length }} de 15 partidos ya disputados</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <div class="flex items-center gap-1.5 font-mono">
+            <span class="text-slate-400">Efectividad IA en curso:</span>
+            <span class="px-2.5 py-0.5 rounded-lg font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+              <CheckCircle2 class="h-3.5 w-3.5 text-emerald-400" />
+              <span>{{ aiAccuracy.hits }} / {{ finishedMatches.length }} Aciertos ({{ aiAccuracy.pct }}%)</span>
+            </span>
+          </div>
+          <span class="text-amber-400 font-mono font-semibold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
+            • {{ 15 - finishedMatches.length }} por disputar
+          </span>
+        </div>
+      </div>
+
       <!-- LISTADO DE CASILLAS DEL BOLETO -->
       <div class="space-y-3">
         <div
           v-for="partido in filteredPartidos"
           :key="partido.id"
           class="glass-card rounded-2xl p-4 transition duration-200 border border-slate-800/80 hover:border-slate-700"
+          :class="[
+            partido.resultadoSigno
+              ? (isMatchHit(partido) ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-rose-500/70')
+              : 'border-l-4 border-l-amber-500/60'
+          ]"
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <!-- Identificador y Equipos -->
@@ -641,17 +671,46 @@ function handleCopy() {
                 </div>
 
                 <!-- Subtexto de recomendación y toggle explicativo -->
-                <div class="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
+                <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-400 mt-1">
                   <span>
                     IA sugiere: <strong class="text-emerald-400 font-mono">{{ partido.predicciones[0]?.recomendacionSigno || '1' }}</strong>
                   </span>
                   <span>•</span>
                   <span>Confianza: <strong class="text-slate-300 font-mono">{{ Math.round(Number(partido.predicciones[0]?.confianzaScore || 65)) }}%</strong></span>
+
+                  <!-- INDICADOR DE ACIERTO/FALLO EN PARTIDO YA DISPUTADO DE LA JORNADA EN CURSO -->
+                  <span v-if="partido.resultadoSigno" class="flex items-center gap-1.5 ml-1">
+                    <span>•</span>
+                    <span class="font-mono text-slate-300">
+                      Marcador: <strong class="text-white">{{ partido.golesLocal ?? '-' }}-{{ partido.golesVisitante ?? '-' }}</strong> [{{ partido.resultadoSigno }}]
+                    </span>
+                    <span
+                      v-if="isMatchHit(partido)"
+                      class="px-2 py-0.2 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-sm"
+                    >
+                      <CheckCircle2 class="h-3 w-3 text-emerald-400" />
+                      <span>ACIERTO IA</span>
+                    </span>
+                    <span
+                      v-else
+                      class="px-2 py-0.2 rounded text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1 shadow-sm"
+                    >
+                      <XCircle class="h-3 w-3 text-rose-400" />
+                      <span>FALLO IA</span>
+                    </span>
+                  </span>
+
+                  <!-- INDICADOR DE PARTIDO PENDIENTE -->
+                  <span v-else class="flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.2 rounded-md border border-amber-500/20 ml-1">
+                    <Clock class="h-3 w-3 text-amber-400 animate-pulse" />
+                    <span>Por disputar (Hoy 21:00h)</span>
+                  </span>
+
                   <button
                     @click="toggleExplanation(partido.numeroCasilla)"
-                    class="text-slate-400 hover:text-emerald-400 text-[11px] underline ml-1 cursor-pointer flex items-center gap-0.5"
+                    class="text-slate-400 hover:text-emerald-400 text-[11px] underline ml-auto sm:ml-1 cursor-pointer flex items-center gap-0.5"
                   >
-                    <span>{{ expandedCards[partido.numeroCasilla] ? 'Ocultar' : 'Ver por qué' }}</span>
+                    <span>{{ expandedCards[partido.numeroCasilla] ? 'Ocultar' : 'Ver análisis' }}</span>
                     <component :is="expandedCards[partido.numeroCasilla] ? ChevronUp : ChevronDown" class="h-3 w-3" />
                   </button>
                 </div>
@@ -670,11 +729,22 @@ function handleCopy() {
                     : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700/80',
                   partido.predicciones[0]?.recomendacionSigno.includes(signo) && !userSelections[partido.numeroCasilla]?.[signo]
                     ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/5'
+                    : '',
+                  partido.resultadoSigno === signo
+                    ? 'ring-2 ring-amber-400/80'
                     : ''
                 ]"
-                class="h-10 w-11 sm:h-11 sm:w-12 rounded-xl border text-sm sm:text-base font-extrabold transition-all duration-150 flex items-center justify-center cursor-pointer font-mono"
+                class="h-10 w-11 sm:h-11 sm:w-12 rounded-xl border text-sm sm:text-base font-extrabold transition-all duration-150 flex items-center justify-center cursor-pointer font-mono relative"
               >
-                {{ signo }}
+                <span>{{ signo }}</span>
+                <!-- Marcador de signo oficial si ya se jugó -->
+                <span
+                  v-if="partido.resultadoSigno === signo"
+                  class="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-amber-400 text-slate-950 text-[8px] font-black flex items-center justify-center shadow-sm"
+                  title="Signo Oficial Disputado"
+                >
+                  ✓
+                </span>
               </button>
             </div>
 
