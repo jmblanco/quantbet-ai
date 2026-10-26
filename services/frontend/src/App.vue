@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 import { 
   Sparkles, 
@@ -17,7 +17,8 @@ import {
   Copy, 
   Check, 
   Zap, 
-  Activity 
+  Activity,
+  AlertTriangle
 } from 'lucide-vue-next';
 
 import TicketScreen from './components/TicketScreen.vue';
@@ -553,7 +554,27 @@ async function runBayesianFeedback(targetJornadaId?: string) {
   }
 }
 
+// Sincronización bidireccional de navegación por pestañas con el hash de la URL
+watch(activeTab, (newTab) => {
+  if (window.location.hash.replace('#', '') !== newTab) {
+    window.location.hash = newTab;
+  }
+});
+
 onMounted(async () => {
+  const hash = window.location.hash.replace('#', '') as ScreenTab;
+  const validTabs: ScreenTab[] = ['boleto', 'live', 'equipos', 'reducciones', 'metricas', 'colas'];
+  if (validTabs.includes(hash)) {
+    activeTab.value = hash;
+  }
+
+  window.addEventListener('hashchange', () => {
+    const currentHash = window.location.hash.replace('#', '') as ScreenTab;
+    if (validTabs.includes(currentHash) && activeTab.value !== currentHash) {
+      activeTab.value = currentHash;
+    }
+  });
+
   await fetchJornada();
   fetchMetrics();
   fetchTeamRatings();
@@ -565,19 +586,23 @@ onMounted(async () => {
     <!-- TOP NAVIGATION BAR (PROFESIONAL & SIN DISTRACCIONES) -->
     <header class="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80">
       <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <!-- Logo y Badge -->
-        <div class="flex items-center gap-3">
-          <div class="h-9 w-9 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <Sparkles class="h-5 w-5 text-slate-950" />
+        <!-- Logo y Badge de Marca -->
+        <button
+          @click="activeTab = 'boleto'"
+          class="flex items-center gap-3 cursor-pointer group text-left bg-transparent border-none p-0 focus:outline-none select-none"
+          title="Ir al Boleto Principal (QuantBet AI)"
+        >
+          <div class="h-10 w-10 rounded-2xl bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:border-emerald-500/50 group-hover:shadow-emerald-500/25 transition overflow-hidden shrink-0">
+            <img src="/brand-logo.svg" alt="QuantBet AI Logo" class="h-full w-full object-contain" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-base sm:text-lg font-black tracking-tight text-white">QuantBet</span>
+              <span class="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-emerald-400 transition">QuantBet</span>
               <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI</span>
             </div>
             <p class="text-[10px] text-slate-400 hidden sm:block">Inteligencia Probabilística en Apuestas</p>
           </div>
-        </div>
+        </button>
 
         <!-- Pestañas de Navegación (Centradas) -->
         <nav class="hidden md:flex items-center p-1 bg-slate-900 border border-slate-800 rounded-2xl">
@@ -729,35 +754,55 @@ onMounted(async () => {
 
       <div v-else>
         <!-- PANTALLA 1: BOLETO INTELIGENTE / HISTÓRICO -->
-        <TicketScreen
-          v-if="activeTab === 'boleto' && jornada"
-          :jornada="jornada"
-          :userSelections="userSelections"
-          :pleno15Score="pleno15Score"
-          :guarantee="guarantee"
-          :totalCost="totalCost"
-          :totalBetsCount="totalBetsCount"
-          :reductionRatioPct="reductionRatioPct"
-          :activePreset="activePreset"
-          :executingFeedback="executingFeedback"
-          :lastFeedbackInfo="lastFeedbackInfo"
-          @toggleSign="toggleSign"
-          @setPleno15="setPleno15"
-          @applyPreset="applyBudgetPreset"
-          @downloadQui="downloadQuiFile"
-          @copyPronostico="copyPronosticoToClipboard"
-          @openMethodology="showMethodologyModal = true"
-          @runBayesianFeedback="runBayesianFeedback"
-        />
+        <div v-if="activeTab === 'boleto'">
+          <TicketScreen
+            v-if="jornada"
+            :jornada="jornada"
+            :userSelections="userSelections"
+            :pleno15Score="pleno15Score"
+            :guarantee="guarantee"
+            :totalCost="totalCost"
+            :totalBetsCount="totalBetsCount"
+            :reductionRatioPct="reductionRatioPct"
+            :activePreset="activePreset"
+            :executingFeedback="executingFeedback"
+            :lastFeedbackInfo="lastFeedbackInfo"
+            @toggleSign="toggleSign"
+            @setPleno15="setPleno15"
+            @applyPreset="applyBudgetPreset"
+            @downloadQui="downloadQuiFile"
+            @copyPronostico="copyPronosticoToClipboard"
+            @openMethodology="showMethodologyModal = true"
+            @runBayesianFeedback="runBayesianFeedback"
+          />
+          <div v-else class="py-16 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 max-w-lg mx-auto">
+            <AlertTriangle class="h-10 w-10 text-amber-400 mx-auto mb-3" />
+            <h3 class="text-base font-bold text-white mb-2">No se pudo cargar la jornada seleccionada</h3>
+            <p class="text-xs text-slate-400 mb-4">Comprueba la conexión con el servidor o pulsa para recargar los datos oficiales.</p>
+            <button @click="fetchJornada()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition cursor-pointer">
+              Reintentar Carga
+            </button>
+          </div>
+        </div>
 
         <!-- PANTALLA 2: EN VIVO & ESCRUTINIO -->
-        <LiveScreen
-          v-else-if="activeTab === 'live' && jornada"
-          :jornada="jornada"
-          :userSelections="userSelections"
-          :syncing="syncingLive"
-          @syncLive="syncLiveQuiniela"
-        />
+        <div v-else-if="activeTab === 'live'">
+          <LiveScreen
+            v-if="jornada"
+            :jornada="jornada"
+            :userSelections="userSelections"
+            :syncing="syncingLive"
+            @syncLive="syncLiveQuiniela"
+          />
+          <div v-else class="py-16 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 max-w-lg mx-auto">
+            <AlertTriangle class="h-10 w-10 text-amber-400 mx-auto mb-3" />
+            <h3 class="text-base font-bold text-white mb-2">Sin jornada en vivo disponible</h3>
+            <p class="text-xs text-slate-400 mb-4">No se detectaron partidos en juego para monitorizar en directo en este momento.</p>
+            <button @click="fetchJornada()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition cursor-pointer">
+              Recargar Estado
+            </button>
+          </div>
+        </div>
 
         <!-- PANTALLA 3: DIRECTORIO DE CLUBES, MAPAS DE CALOR & TÁCTICA -->
         <TeamsScreen
