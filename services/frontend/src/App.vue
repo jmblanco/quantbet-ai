@@ -321,18 +321,19 @@ async function fetchJornada(targetId?: string) {
   loading.value = true;
   try {
     let data;
+    const cacheBuster = `t=${Date.now()}`;
     if (targetId) {
-      const res = await axios.get(`/api/jornadas/${targetId}`);
+      const res = await axios.get(`/api/jornadas/${targetId}?${cacheBuster}`);
       data = res.data;
     } else {
       // 1. Cargar directamente la jornada en curso / actual de esta semana
       try {
-        const res = await axios.get('/api/jornadas/actual');
+        const res = await axios.get(`/api/jornadas/actual?${cacheBuster}`);
         data = res.data;
       } catch (e) {
-        const res = await axios.get('/api/jornadas');
+        const res = await axios.get(`/api/jornadas?${cacheBuster}`);
         if (res.data && res.data.length > 0) {
-          const detailRes = await axios.get(`/api/jornadas/${res.data[0].id}`);
+          const detailRes = await axios.get(`/api/jornadas/${res.data[0].id}?${cacheBuster}`);
           data = detailRes.data;
         }
       }
@@ -347,7 +348,7 @@ async function fetchJornada(targetId?: string) {
     }
 
     // Cargar historial de jornadas para el selector
-    const { data: jornadas } = await axios.get('/api/jornadas');
+    const { data: jornadas } = await axios.get(`/api/jornadas?${cacheBuster}`);
     if (jornadas && jornadas.length > 0) {
       availableJornadas.value = jornadas.slice(0, 38);
     }
@@ -765,7 +766,7 @@ onMounted(() => {
               class="bg-transparent text-slate-200 text-xs font-bold focus:outline-none cursor-pointer pr-1"
             >
               <option v-for="j in availableJornadas" :key="j.id" :value="j.id" class="bg-slate-950 text-slate-200">
-                Jornada {{ j.numero }} ({{ j.temporada?.codigo || '2024-2025' }})
+                Jornada {{ j.numero }} ({{ j.temporada?.codigo || '2026-2027' }})
               </option>
             </select>
           </div>
@@ -778,10 +779,10 @@ onMounted(() => {
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-2 gap-x-6 text-[11px] text-slate-400 font-mono">
         <div class="flex items-center gap-2">
           <ShieldCheck class="h-3.5 w-3.5 text-emerald-400" />
-          <span>Auditoría de <strong>11 Temporadas</strong> (2014-2025)</span>
+          <span>Auditoría de <strong>12 Temporadas</strong> (2014-2026)</span>
         </div>
         <div class="flex items-center gap-4">
-          <span>Partidos Analizados: <strong class="text-slate-200">6.270</strong></span>
+          <span>Partidos Analizados: <strong class="text-slate-200">6.510</strong></span>
           <span class="hidden sm:inline">•</span>
           <span>Calibración Brier: <strong class="text-teal-300">0.182</strong></span>
           <span class="hidden sm:inline">•</span>
@@ -818,17 +819,17 @@ onMounted(() => {
                   </span>
                   <span class="px-2.5 py-0.5 text-xs font-extrabold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
                     <Clock class="h-3.5 w-3.5 animate-pulse" />
-                    JORNADA {{ jornada?.numero }} EN CURSO
+                    JORNADA {{ jornada?.numero }} EN CURSO ({{ jornada?.temporada?.codigo || '2026-2027' }})
                   </span>
                   <span v-if="fatiguedMatchesCount > 0" class="px-2.5 py-0.5 text-xs font-bold rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
                     <Zap class="h-3.5 w-3.5 text-amber-400 animate-pulse" />
                     {{ fatiguedMatchesCount }} con Fatiga Europea (&lt;72h)
                   </span>
-                  <span class="text-xs text-slate-400 font-mono">Cierre: {{ new Date(jornada?.fechaCierre || '').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) }}</span>
+                  <span class="text-xs text-slate-400 font-mono">Cierre: {{ new Date(jornada?.fechaCierre || '').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
                 </div>
 
                 <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                  Quiniela de Esta Semana (Jornada {{ jornada?.numero }})
+                  Quiniela de Esta Semana (Jornada {{ jornada?.numero }} • {{ jornada?.temporada?.codigo || '2026-2027' }})
                   <span class="text-slate-600 text-xl font-normal">|</span>
                   <span class="text-amber-400 font-extrabold text-2xl flex items-center gap-1.5">
                     <Coins class="h-6 w-6 text-amber-400" />

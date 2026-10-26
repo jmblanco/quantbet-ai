@@ -106,22 +106,19 @@ export async function registerRoutes(app: FastifyInstance) {
       tags: ['Jornadas']
     }
   }, async (req, reply) => {
-    // Intentar leer de la caché de Valkey
-    const cacheKey = 'cache:jornadas:list';
-    const cached = await valkey.get(cacheKey);
-    if (cached) {
-      return reply.send(JSON.parse(cached));
-    }
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate');
 
     const jornadas = await prisma.jornada.findMany({
-      orderBy: { fechaCierre: 'desc' },
+      orderBy: [
+        { temporada: { codigo: 'desc' } },
+        { numero: 'desc' }
+      ],
       include: {
         temporada: true,
         juego: true
       }
     });
 
-    await valkey.set(cacheKey, JSON.stringify(jornadas), 'EX', 30); // 30s TTL
     return reply.send(jornadas);
   });
 
@@ -132,9 +129,12 @@ export async function registerRoutes(app: FastifyInstance) {
       tags: ['Jornadas']
     }
   }, async (req, reply) => {
-    // Buscar primero la jornada que está en juego hoy (Jornada 16 con Sevilla-Osasuna pendiente)
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+    // Buscar primero la jornada activa en juego hoy de la temporada 2026-2027
     let jornada = await prisma.jornada.findFirst({
       where: {
+        temporada: { activa: true },
         estado: 'EN_JUEGO'
       },
       orderBy: { numero: 'desc' },
@@ -155,7 +155,10 @@ export async function registerRoutes(app: FastifyInstance) {
 
     if (!jornada) {
       jornada = await prisma.jornada.findFirst({
-        where: { estado: 'PROGRAMADA' },
+        where: {
+          temporada: { activa: true },
+          estado: 'PROGRAMADA'
+        },
         orderBy: { numero: 'asc' },
         include: {
           temporada: true,
@@ -173,7 +176,7 @@ export async function registerRoutes(app: FastifyInstance) {
     if (!jornada || jornada.partidos.length < 15) {
       await syncLiveQuiniela();
       jornada = await prisma.jornada.findFirst({
-        where: { numero: 16 },
+        where: { numero: 16, temporada: { activa: true } },
         include: {
           temporada: true,
           juego: true,

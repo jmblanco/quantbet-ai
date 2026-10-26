@@ -173,12 +173,12 @@ export async function syncLiveQuiniela() {
     }
   });
 
-  // 2. Asegurar Temporada 2024-2025
+  // 2. Asegurar Temporada Oficial 2026-2027 como activa
   const temporada = await prisma.temporada.upsert({
-    where: { codigo: '2024-2025' },
+    where: { codigo: '2026-2027' },
     update: { activa: true },
     create: {
-      codigo: '2024-2025',
+      codigo: '2026-2027',
       activa: true
     }
   });
