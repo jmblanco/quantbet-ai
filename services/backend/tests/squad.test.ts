@@ -56,4 +56,37 @@ describe('SquadService & Tactical Intelligence', () => {
     expect(report.resumenTactico).toContain('Duelo táctico');
     expect(['LOCAL', 'VISITANTE', 'EQUILIBRADO']).toContain(report.ventajaPlantilla);
   });
+
+  it('debe auditar rigurosamente que todos los 42 equipos canónicos tienen exactamente 11 titulares, 1 portero y sin jugadores ni dorsales duplicados', () => {
+    const teamsToTest = [
+      // Primera División (20)
+      'Real Madrid', 'Barcelona', 'At. Madrid', 'Athletic Club', 'Real Sociedad',
+      'Betis', 'Villarreal', 'Sevilla', 'Osasuna', 'Celta', 'Valencia', 'Getafe',
+      'Rayo Vallecano', 'Mallorca', 'Alavés', 'Leganés', 'Girona', 'Espanyol',
+      'Las Palmas', 'Valladolid',
+      // Segunda División (22)
+      'Levante', 'Real Zaragoza', 'Sporting de Gijón', 'Racing Santander', 'Real Oviedo',
+      'Granada', 'Elche', 'Eibar', 'Almería', 'Deportivo', 'Cádiz', 'Tenerife',
+      'Castellón', 'Burgos', 'Albacete', 'Huesca', 'Cartagena', 'Córdoba',
+      'Málaga', 'Eldense', 'Mirandés', 'Racing Ferrol'
+    ];
+
+    expect(teamsToTest).toHaveLength(42);
+
+    for (const team of teamsToTest) {
+      const squad = SquadService.getTeamSquad(team);
+      expect(squad.titulares, `Equipo ${team} no tiene 11 titulares`).toHaveLength(11);
+      
+      const por = squad.titulares.filter(p => p.posicion === 'POR');
+      expect(por, `Equipo ${team} no tiene exactamente 1 portero`).toHaveLength(1);
+
+      const nombres = squad.titulares.map(p => p.nombre);
+      const nombresUnicos = new Set(nombres);
+      expect(nombresUnicos.size, `Equipo ${team} tiene nombres de jugadores duplicados`).toBe(11);
+
+      const dorsales = squad.titulares.map(p => p.dorsal);
+      const dorsalesUnicos = new Set(dorsales);
+      expect(dorsalesUnicos.size, `Equipo ${team} tiene dorsales duplicados`).toBe(11);
+    }
+  });
 });
