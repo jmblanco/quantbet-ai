@@ -215,8 +215,8 @@ const totalBetsCount = computed(() => {
   if (guarantee.value === 'DIRECTO') {
     return Math.pow(2, doubleCount.value) * Math.pow(3, tripleCount.value);
   }
-  if (reductionData.value && reductionData.value.reducedApuestasCount) {
-    return reductionData.value.reducedApuestasCount;
+  if (reductionData.value && (reductionData.value.reducedBetsCount || reductionData.value.reducedApuestasCount)) {
+    return reductionData.value.reducedBetsCount || reductionData.value.reducedApuestasCount;
   }
   // Estimación empírica estándar
   const direct = Math.pow(2, doubleCount.value) * Math.pow(3, tripleCount.value);
@@ -262,17 +262,21 @@ async function fetchJornada(targetId?: string) {
       jornada.value = data;
       selectedJornadaId.value = data.id;
       setupInitialSelections(data);
-      applyBudgetPreset('estandar');
-    }
-
-    const { data: jornadas } = await axios.get(`/api/jornadas?${cacheBuster}`);
-    if (jornadas && jornadas.length > 0) {
-      availableJornadas.value = jornadas.slice(0, 38);
     }
   } catch (err) {
     console.error('Error cargando jornada:', err);
   } finally {
     loading.value = false;
+  }
+
+  // Carga no bloqueante de la lista de jornadas disponibles
+  try {
+    const { data: jornadas } = await axios.get(`/api/jornadas?t=${Date.now()}`);
+    if (jornadas && jornadas.length > 0) {
+      availableJornadas.value = jornadas.slice(0, 38);
+    }
+  } catch (e) {
+    console.warn('Carga diferida de jornadas disponible:', e);
   }
 }
 
@@ -575,7 +579,8 @@ onMounted(async () => {
     }
   });
 
-  await fetchJornada();
+  // Carga asíncrona no bloqueante
+  fetchJornada();
   fetchMetrics();
   fetchTeamRatings();
 });
@@ -747,98 +752,99 @@ onMounted(async () => {
 
     <!-- CUERPO PRINCIPAL (ROUTING POR PANTALLA) -->
     <main class="max-w-7xl mx-auto px-4 mt-6 flex-1 w-full">
-      <div v-if="loading" class="flex flex-col items-center justify-center py-32 text-slate-400">
-        <div class="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-sm font-medium">Cargando datos oficiales y ejecutando modelos de Dixon-Coles...</p>
-      </div>
-
-      <div v-else>
-        <!-- PANTALLA 1: BOLETO INTELIGENTE / HISTÓRICO -->
-        <div v-if="activeTab === 'boleto'">
-          <TicketScreen
-            v-if="jornada"
-            :jornada="jornada"
-            :userSelections="userSelections"
-            :pleno15Score="pleno15Score"
-            :guarantee="guarantee"
-            :totalCost="totalCost"
-            :totalBetsCount="totalBetsCount"
-            :reductionRatioPct="reductionRatioPct"
-            :activePreset="activePreset"
-            :executingFeedback="executingFeedback"
-            :lastFeedbackInfo="lastFeedbackInfo"
-            @toggleSign="toggleSign"
-            @setPleno15="setPleno15"
-            @applyPreset="applyBudgetPreset"
-            @downloadQui="downloadQuiFile"
-            @copyPronostico="copyPronosticoToClipboard"
-            @openMethodology="showMethodologyModal = true"
-            @runBayesianFeedback="runBayesianFeedback"
-          />
-          <div v-else class="py-16 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 max-w-lg mx-auto">
-            <AlertTriangle class="h-10 w-10 text-amber-400 mx-auto mb-3" />
-            <h3 class="text-base font-bold text-white mb-2">No se pudo cargar la jornada seleccionada</h3>
-            <p class="text-xs text-slate-400 mb-4">Comprueba la conexión con el servidor o pulsa para recargar los datos oficiales.</p>
-            <button @click="fetchJornada()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition cursor-pointer">
-              Reintentar Carga
-            </button>
-          </div>
+      <!-- PANTALLA 1: BOLETO INTELIGENTE / HISTÓRICO -->
+      <div v-if="activeTab === 'boleto'">
+        <div v-if="loading" class="flex flex-col items-center justify-center py-32 text-slate-400">
+          <div class="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p class="text-sm font-medium">Cargando datos oficiales y ejecutando modelos de Dixon-Coles...</p>
         </div>
-
-        <!-- PANTALLA 2: EN VIVO & ESCRUTINIO -->
-        <div v-else-if="activeTab === 'live'">
-          <LiveScreen
-            v-if="jornada"
-            :jornada="jornada"
-            :userSelections="userSelections"
-            :syncing="syncingLive"
-            @syncLive="syncLiveQuiniela"
-          />
-          <div v-else class="py-16 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 max-w-lg mx-auto">
-            <AlertTriangle class="h-10 w-10 text-amber-400 mx-auto mb-3" />
-            <h3 class="text-base font-bold text-white mb-2">Sin jornada en vivo disponible</h3>
-            <p class="text-xs text-slate-400 mb-4">No se detectaron partidos en juego para monitorizar en directo en este momento.</p>
-            <button @click="fetchJornada()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition cursor-pointer">
-              Recargar Estado
-            </button>
-          </div>
-        </div>
-
-        <!-- PANTALLA 3: DIRECTORIO DE CLUBES, MAPAS DE CALOR & TÁCTICA -->
-        <TeamsScreen
-          v-else-if="activeTab === 'equipos'"
-        />
-
-        <!-- PANTALLA 4: LABORATORIO DE REDUCCIONES -->
-        <ReductionsScreen
-          v-else-if="activeTab === 'reducciones'"
+        <TicketScreen
+          v-else-if="jornada"
+          :jornada="jornada"
+          :userSelections="userSelections"
+          :pleno15Score="pleno15Score"
           :guarantee="guarantee"
-          :totalBetsCount="totalBetsCount"
           :totalCost="totalCost"
+          :totalBetsCount="totalBetsCount"
           :reductionRatioPct="reductionRatioPct"
-          :doubleCount="doubleCount"
-          :tripleCount="tripleCount"
-          @updateGuarantee="handleGuaranteeUpdate"
-          @downloadQui="downloadQuiFile"
-          @copyPronostico="copyPronosticoToClipboard"
-        />
-
-        <!-- PANTALLA 5: MOTOR CUÁNTICO & AUDITORÍA (12 TEMPORADAS) -->
-        <AnalyticsScreen
-          v-else-if="activeTab === 'metricas'"
-          :metricas="metricas"
-          :teamRatings="teamRatings"
-          :loadingRatings="loadingRatings"
+          :activePreset="activePreset"
           :executingFeedback="executingFeedback"
           :lastFeedbackInfo="lastFeedbackInfo"
+          @toggleSign="toggleSign"
+          @setPleno15="setPleno15"
+          @applyPreset="applyBudgetPreset"
+          @downloadQui="downloadQuiFile"
+          @copyPronostico="copyPronosticoToClipboard"
+          @openMethodology="showMethodologyModal = true"
           @runBayesianFeedback="runBayesianFeedback"
         />
-
-        <!-- PANTALLA 6: MONITOR DE COLAS Y REFRESCO ASÍNCRONO (BULLMQ) -->
-        <QueuesScreen
-          v-else-if="activeTab === 'colas'"
-        />
+        <div v-else class="py-16 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 max-w-lg mx-auto">
+          <AlertTriangle class="h-10 w-10 text-amber-400 mx-auto mb-3" />
+          <h3 class="text-base font-bold text-white mb-2">No se pudo cargar la jornada seleccionada</h3>
+          <p class="text-xs text-slate-400 mb-4">Comprueba la conexión con el servidor o pulsa para recargar los datos oficiales.</p>
+          <button @click="fetchJornada()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition cursor-pointer">
+            Reintentar Carga
+          </button>
+        </div>
       </div>
+
+      <!-- PANTALLA 2: EN VIVO & ESCRUTINIO -->
+      <div v-else-if="activeTab === 'live'">
+        <div v-if="loading" class="flex flex-col items-center justify-center py-32 text-slate-400">
+          <div class="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p class="text-sm font-medium">Sincronizando partidos en vivo...</p>
+        </div>
+        <LiveScreen
+          v-else-if="jornada"
+          :jornada="jornada"
+          :userSelections="userSelections"
+          :syncing="syncingLive"
+          @syncLive="syncLiveQuiniela"
+        />
+        <div v-else class="py-16 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 max-w-lg mx-auto">
+          <AlertTriangle class="h-10 w-10 text-amber-400 mx-auto mb-3" />
+          <h3 class="text-base font-bold text-white mb-2">Sin jornada en vivo disponible</h3>
+          <p class="text-xs text-slate-400 mb-4">No se detectaron partidos en juego para monitorizar en directo en este momento.</p>
+          <button @click="fetchJornada()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition cursor-pointer">
+            Recargar Estado
+          </button>
+        </div>
+      </div>
+
+      <!-- PANTALLA 3: DIRECTORIO DE CLUBES, MAPAS DE CALOR & TÁCTICA -->
+      <TeamsScreen
+        v-else-if="activeTab === 'equipos'"
+      />
+
+      <!-- PANTALLA 4: LABORATORIO DE REDUCCIONES -->
+      <ReductionsScreen
+        v-else-if="activeTab === 'reducciones'"
+        :guarantee="guarantee"
+        :totalBetsCount="totalBetsCount"
+        :totalCost="totalCost"
+        :reductionRatioPct="reductionRatioPct"
+        :doubleCount="doubleCount"
+        :tripleCount="tripleCount"
+        @updateGuarantee="handleGuaranteeUpdate"
+        @downloadQui="downloadQuiFile"
+        @copyPronostico="copyPronosticoToClipboard"
+      />
+
+      <!-- PANTALLA 5: MOTOR CUÁNTICO & AUDITORÍA (12 TEMPORADAS) -->
+      <AnalyticsScreen
+        v-else-if="activeTab === 'metricas'"
+        :metricas="metricas"
+        :teamRatings="teamRatings"
+        :loadingRatings="loadingRatings"
+        :executingFeedback="executingFeedback"
+        :lastFeedbackInfo="lastFeedbackInfo"
+        @runBayesianFeedback="runBayesianFeedback"
+      />
+
+      <!-- PANTALLA 6: MONITOR DE COLAS Y REFRESCO ASÍNCRONO (BULLMQ) -->
+      <QueuesScreen
+        v-else-if="activeTab === 'colas'"
+      />
     </main>
 
     <!-- FOOTER ELEGANTE -->

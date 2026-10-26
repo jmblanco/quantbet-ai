@@ -9,7 +9,11 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:3333',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        agent: false,
+        headers: {
+          Connection: 'close'
+        }
       }
     }
   }

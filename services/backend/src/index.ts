@@ -13,7 +13,9 @@ const host = process.env.HOST || '0.0.0.0';
 
 async function bootstrap() {
   const app = fastify({
-    logger: true
+    logger: true,
+    keepAliveTimeout: 65000,
+    headersTimeout: 66000
   });
 
   // Habilitar CORS
