@@ -24,7 +24,7 @@ interface SeasonData {
   matches: RawMatch[];
 }
 
-// 11 temporadas completas (2014 a 2025: más de 10 años de histórico ininterrumpido)
+// 12 temporadas completas (2014 a 2026: 12 años de histórico ininterrumpido)
 const SEASONS_TO_INGEST = [
   { code: '2014-2015', path: '2014-15' },
   { code: '2015-2016', path: '2015-16' },
@@ -36,7 +36,8 @@ const SEASONS_TO_INGEST = [
   { code: '2021-2022', path: '2021-22' },
   { code: '2022-2023', path: '2022-23' },
   { code: '2023-2024', path: '2023-24' },
-  { code: '2024-2025', path: '2024-25' }
+  { code: '2024-2025', path: '2024-25' },
+  { code: '2025-2026', path: '2025-26' }
 ].map(s => ({
   code: s.code,
   url: `https://raw.githubusercontent.com/openfootball/football.json/master/${s.path}/es.1.json`
