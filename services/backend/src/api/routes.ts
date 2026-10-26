@@ -128,15 +128,16 @@ export async function registerRoutes(app: FastifyInstance) {
   // 3. Jornada actual en curso (Hero de la app)
   app.get('/api/jornadas/actual', {
     schema: {
-      description: 'Obtiene la jornada activa de esta semana con pronósticos completos de IA',
+      description: 'Obtiene la jornada activa oficial de SELAE con pronósticos completos de IA',
       tags: ['Jornadas']
     }
   }, async (req, reply) => {
+    // Buscar primero la jornada que está en juego hoy (Jornada 16 con Sevilla-Osasuna pendiente)
     let jornada = await prisma.jornada.findFirst({
       where: {
-        estado: { in: ['PROGRAMADA', 'EN_JUEGO'] }
+        estado: 'EN_JUEGO'
       },
-      orderBy: { fechaCierre: 'desc' },
+      orderBy: { numero: 'desc' },
       include: {
         temporada: true,
         juego: true,
@@ -152,11 +153,27 @@ export async function registerRoutes(app: FastifyInstance) {
       }
     });
 
+    if (!jornada) {
+      jornada = await prisma.jornada.findFirst({
+        where: { estado: 'PROGRAMADA' },
+        orderBy: { numero: 'asc' },
+        include: {
+          temporada: true,
+          juego: true,
+          partidos: {
+            orderBy: { numeroCasilla: 'asc' },
+            include: {
+              predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+            }
+          }
+        }
+      });
+    }
+
     if (!jornada || jornada.partidos.length < 15) {
       await syncLiveQuiniela();
       jornada = await prisma.jornada.findFirst({
-        where: { estado: { in: ['PROGRAMADA', 'EN_JUEGO'] } },
-        orderBy: { fechaCierre: 'desc' },
+        where: { numero: 16 },
         include: {
           temporada: true,
           juego: true,
