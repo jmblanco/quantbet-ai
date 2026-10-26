@@ -81,7 +81,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Athletic Club': {
     sistema: '4-2-3-1',
-    entrenador: 'Ernesto Valverde',
+    entrenador: 'Edin Terzić',
     titulares: [
       { nombre: 'Julen Agirrezabala', dorsal: 13, posicion: 'POR' },
       { nombre: 'Óscar de Marcos', dorsal: 18, posicion: 'DEF', esCapitan: true },
@@ -102,7 +102,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Real Sociedad': {
     sistema: '4-3-3',
-    entrenador: 'Imanol Alguacil',
+    entrenador: 'Pellegrino Matarazzo',
     titulares: [
       { nombre: 'Álex Remiro', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Jon Aramburu', dorsal: 27, posicion: 'DEF' },
@@ -146,7 +146,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Villarreal': {
     sistema: '4-4-2',
-    entrenador: 'Marcelino García Toral',
+    entrenador: 'Íñigo Pérez',
     titulares: [
       { nombre: 'Diego Conde', dorsal: 13, posicion: 'POR' },
       { nombre: 'Kiko Femenía', dorsal: 17, posicion: 'DEF' },
@@ -168,7 +168,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Sevilla': {
     sistema: '4-3-3',
-    entrenador: 'Francisco Javier García Pimienta',
+    entrenador: 'Luis García Plaza',
     titulares: [
       { nombre: 'Örjan Nyland', dorsal: 13, posicion: 'POR' },
       { nombre: 'José Ángel Carmona', dorsal: 32, posicion: 'DEF' },
@@ -190,7 +190,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Osasuna': {
     sistema: '4-3-3',
-    entrenador: 'Vicente Moreno',
+    entrenador: 'Jagoba Arrasate',
     titulares: [
       { nombre: 'Sergio Herrera', dorsal: 1, posicion: 'POR', esClave: true, esCapitan: true },
       { nombre: 'Jesús Areso', dorsal: 12, posicion: 'DEF' },
@@ -233,7 +233,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Valencia': {
     sistema: '4-4-2',
-    entrenador: 'Rubén Baraja',
+    entrenador: 'Javier Aguirre',
     titulares: [
       { nombre: 'Giorgi Mamardashvili', dorsal: 25, posicion: 'POR', esClave: true },
       { nombre: 'Thierry Correia', dorsal: 12, posicion: 'DEF' },
@@ -277,7 +277,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Rayo Vallecano': {
     sistema: '4-2-3-1',
-    entrenador: 'Íñigo Pérez',
+    entrenador: 'Beñat San José',
     titulares: [
       { nombre: 'Augusto Batalla', dorsal: 13, posicion: 'POR', esClave: true },
       { nombre: 'Andrei Rațiu', dorsal: 2, posicion: 'DEF', esClave: true },
@@ -319,7 +319,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Alavés': {
     sistema: '4-2-3-1',
-    entrenador: 'Luis García Plaza',
+    entrenador: 'Eduardo Coudet',
     titulares: [
       { nombre: 'Antonio Sivera', dorsal: 1, posicion: 'POR', esCapitan: true, esClave: true },
       { nombre: 'Nahuel Tenaglia', dorsal: 14, posicion: 'DEF' },
@@ -454,7 +454,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   // ==========================================================================
   'Levante': {
     sistema: '4-4-2',
-    entrenador: 'Julián Calero',
+    entrenador: 'Luís Castro',
     titulares: [
       { nombre: 'Andrés Fernández', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Andrés García', dorsal: 2, posicion: 'DEF' },
@@ -580,7 +580,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Elche': {
     sistema: '3-5-2',
-    entrenador: 'Eder Sarabia',
+    entrenador: 'Martín Anselmi',
     titulares: [
       { nombre: 'Matías Dituro', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Álvaro Núñez', dorsal: 2, posicion: 'DEF' },
@@ -643,7 +643,7 @@ export const CANONICAL_TEAMS: Record<string, TeamTacticalProfile> = {
   },
   'Deportivo': {
     sistema: '4-2-3-1',
-    entrenador: 'Óscar Gilsanz',
+    entrenador: 'Antonio Hidalgo',
     titulares: [
       { nombre: 'Helton Leite', dorsal: 1, posicion: 'POR', esClave: true },
       { nombre: 'Ximo Navarro', dorsal: 2, posicion: 'DEF' },

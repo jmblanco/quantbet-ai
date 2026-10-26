@@ -37,7 +37,7 @@ export interface FichaEquipoAgregada {
   squad: AlineacionEquipo;
 }
 
-// Catálogo de clubes de Primera División (LaLiga EA Sports 2026/2027)
+// Catálogo de clubes de Primera División (LaLiga EA Sports 2026/2027) - 20 Clubes Oficiales
 const PRIMERA_DIVISION_CLUBS = [
   { nombre: 'Real Madrid', corto: 'RMA', estadio: 'Santiago Bernabéu', ciudad: 'Madrid', color: '#1e3a8a' },
   { nombre: 'Barcelona', corto: 'FCB', estadio: 'Spotify Camp Nou', ciudad: 'Barcelona', color: '#991b1b' },
@@ -46,33 +46,34 @@ const PRIMERA_DIVISION_CLUBS = [
   { nombre: 'Real Sociedad', corto: 'RSO', estadio: 'Reale Arena', ciudad: 'San Sebastián', color: '#2563eb' },
   { nombre: 'Villarreal', corto: 'VIL', estadio: 'Estadio de la Cerámica', ciudad: 'Villarreal', color: '#eab308' },
   { nombre: 'Betis', corto: 'BET', estadio: 'Benito Villamarín', ciudad: 'Sevilla', color: '#16a34a' },
-  { nombre: 'Girona', corto: 'GIR', estadio: 'Montilivi', ciudad: 'Girona', color: '#ef4444' },
   { nombre: 'Sevilla', corto: 'SEV', estadio: 'Ramón Sánchez-Pizjuán', ciudad: 'Sevilla', color: '#e11d48' },
   { nombre: 'Celta', corto: 'CEL', estadio: 'Abanca-Balaídos', ciudad: 'Vigo', color: '#38bdf8' },
   { nombre: 'Osasuna', corto: 'OSA', estadio: 'El Sadar', ciudad: 'Pamplona', color: '#991b1b' },
   { nombre: 'Rayo Vallecano', corto: 'RAY', estadio: 'Vallecas', ciudad: 'Madrid', color: '#ef4444' },
-  { nombre: 'Mallorca', corto: 'MLL', estadio: 'Son Moix', ciudad: 'Palma', color: '#dc2626' },
   { nombre: 'Valencia', corto: 'VAL', estadio: 'Mestalla', ciudad: 'Valencia', color: '#f97316' },
   { nombre: 'Getafe', corto: 'GET', estadio: 'Coliseum', ciudad: 'Getafe', color: '#2563eb' },
   { nombre: 'Alavés', corto: 'ALA', estadio: 'Mendizorroza', ciudad: 'Vitoria-Gasteiz', color: '#3b82f6' },
-  { nombre: 'Leganés', corto: 'LEG', estadio: 'Municipal Butarque', ciudad: 'Leganés', color: '#2563eb' },
-  { nombre: 'Las Palmas', corto: 'LPA', estadio: 'Gran Canaria', ciudad: 'Las Palmas', color: '#eab308' },
   { nombre: 'Espanyol', corto: 'ESP', estadio: 'Stage Front Stadium', ciudad: 'Barcelona', color: '#3b82f6' },
-  { nombre: 'Valladolid', corto: 'VLL', estadio: 'José Zorrilla', ciudad: 'Valladolid', color: '#9333ea' }
+  { nombre: 'Deportivo', corto: 'DEP', estadio: 'Abanca-Riazor', ciudad: 'A Coruña', color: '#2563eb' },
+  { nombre: 'Racing Santander', corto: 'RAC', estadio: 'El Sardinero', ciudad: 'Santander', color: '#15803d' },
+  { nombre: 'Levante', corto: 'LEV', estadio: 'Ciutat de València', ciudad: 'Valencia', color: '#1e40af' },
+  { nombre: 'Elche', corto: 'ELC', estadio: 'Martínez Valero', ciudad: 'Elche', color: '#16a34a' },
+  { nombre: 'Málaga', corto: 'MAL', estadio: 'La Rosaleda', ciudad: 'Málaga', color: '#0284c7' }
 ];
 
-// Catálogo de clubes de Segunda División (LaLiga Hypermotion 2026/2027)
+// Catálogo de clubes de Segunda División (LaLiga Hypermotion 2026/2027) - 22 Clubes Oficiales
 const SEGUNDA_DIVISION_CLUBS = [
-  { nombre: 'Levante', corto: 'LEV', estadio: 'Ciutat de València', ciudad: 'Valencia', color: '#1e40af' },
+  { nombre: 'Girona', corto: 'GIR', estadio: 'Montilivi', ciudad: 'Girona', color: '#ef4444' },
+  { nombre: 'Mallorca', corto: 'MLL', estadio: 'Son Moix', ciudad: 'Palma', color: '#dc2626' },
+  { nombre: 'Leganés', corto: 'LEG', estadio: 'Municipal Butarque', ciudad: 'Leganés', color: '#2563eb' },
+  { nombre: 'Las Palmas', corto: 'LPA', estadio: 'Gran Canaria', ciudad: 'Las Palmas', color: '#eab308' },
+  { nombre: 'Valladolid', corto: 'VLL', estadio: 'José Zorrilla', ciudad: 'Valladolid', color: '#9333ea' },
+  { nombre: 'Real Oviedo', corto: 'OVI', estadio: 'Carlos Tartiere', ciudad: 'Oviedo', color: '#1d4ed8' },
   { nombre: 'Real Zaragoza', corto: 'ZAR', estadio: 'La Romareda', ciudad: 'Zaragoza', color: '#3b82f6' },
   { nombre: 'Sporting de Gijón', corto: 'SPO', estadio: 'El Molinón', ciudad: 'Gijón', color: '#dc2626' },
-  { nombre: 'Elche', corto: 'ELC', estadio: 'Martínez Valero', ciudad: 'Elche', color: '#16a34a' },
   { nombre: 'Granada', corto: 'GRA', estadio: 'Nuevo Los Cármenes', ciudad: 'Granada', color: '#ef4444' },
   { nombre: 'Eibar', corto: 'EIB', estadio: 'Ipurúa', ciudad: 'Eibar', color: '#991b1b' },
-  { nombre: 'Real Oviedo', corto: 'OVI', estadio: 'Carlos Tartiere', ciudad: 'Oviedo', color: '#1d4ed8' },
-  { nombre: 'Racing Santander', corto: 'RAC', estadio: 'El Sardinero', ciudad: 'Santander', color: '#15803d' },
   { nombre: 'Almería', corto: 'ALM', estadio: 'Power Horse Stadium', ciudad: 'Almería', color: '#dc2626' },
-  { nombre: 'Deportivo', corto: 'DEP', estadio: 'Abanca-Riazor', ciudad: 'A Coruña', color: '#2563eb' },
   { nombre: 'Cádiz', corto: 'CAD', estadio: 'Nuevo Mirandilla', ciudad: 'Cádiz', color: '#eab308' },
   { nombre: 'Tenerife', corto: 'TEN', estadio: 'Heliodoro Rodríguez López', ciudad: 'Santa Cruz', color: '#3b82f6' },
   { nombre: 'Castellón', corto: 'CAS', estadio: 'SkyFi Castalia', ciudad: 'Castellón', color: '#000000' },
@@ -81,7 +82,6 @@ const SEGUNDA_DIVISION_CLUBS = [
   { nombre: 'Huesca', corto: 'HUE', estadio: 'El Alcoraz', ciudad: 'Huesca', color: '#1e3a8a' },
   { nombre: 'Cartagena', corto: 'CAR', estadio: 'Cartagonova', ciudad: 'Cartagena', color: '#000000' },
   { nombre: 'Córdoba', corto: 'COR', estadio: 'Nuevo Arcángel', ciudad: 'Córdoba', color: '#16a34a' },
-  { nombre: 'Málaga', corto: 'MAL', estadio: 'La Rosaleda', ciudad: 'Málaga', color: '#0284c7' },
   { nombre: 'Eldense', corto: 'ELD', estadio: 'Pepico Amat', ciudad: 'Elda', color: '#991b1b' },
   { nombre: 'Mirandés', corto: 'MIR', estadio: 'Anduva', ciudad: 'Miranda de Ebro', color: '#dc2626' },
   { nombre: 'Racing Ferrol', corto: 'RFE', estadio: 'A Malata', ciudad: 'Ferrol', color: '#15803d' }
