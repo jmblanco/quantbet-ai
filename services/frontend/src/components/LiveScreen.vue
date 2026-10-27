@@ -23,6 +23,7 @@ interface Partido {
   numeroCasilla: number;
   equipoLocal: string;
   equipoVisitante: string;
+  fechaHora?: string | null;
   golesLocal?: number | null;
   golesVisitante?: number | null;
   resultadoSigno?: string | null;
@@ -34,6 +35,7 @@ interface Jornada {
   numero: number;
   bote: string;
   recaudacion: string;
+  fechaCierre?: string;
   estado: string;
   partidos: Partido[];
 }
@@ -93,6 +95,45 @@ const prizeCategories = computed(() => {
     { cat: '5ª Categoría (10 Aciertos)', share: '9% de la recaudación', estimated: `${Math.round((recNum * 0.09) / 50000).toLocaleString('es-ES')} €`, minHits: 10 }
   ];
 });
+
+function getMatchScheduleLabel(partido: Partido, jornadaFechaCierre?: string): string {
+  if (partido.resultadoSigno) {
+    return 'FINALIZADO';
+  }
+
+  const rawDate = partido.fechaHora || jornadaFechaCierre;
+  if (!rawDate) {
+    return 'POR DISPUTAR';
+  }
+
+  const matchDate = new Date(rawDate);
+  const now = new Date();
+
+  const matchDay = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round((matchDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  const hours = matchDate.getHours().toString().padStart(2, '0');
+  const minutes = matchDate.getMinutes().toString().padStart(2, '0');
+  const timeStr = `${hours}:${minutes}h`;
+
+  if (diffDays === 0) {
+    const diffHours = (now.getTime() - matchDate.getTime()) / (1000 * 60 * 60);
+    if (diffHours >= 0 && diffHours <= 2.5) {
+      return `EN JUEGO (${timeStr})`;
+    }
+    return `HOY ${timeStr}`;
+  } else if (diffDays === 1) {
+    return `MAÑANA ${timeStr}`;
+  } else if (diffDays === -1) {
+    return `AYER ${timeStr}`;
+  } else {
+    const dayName = matchDate.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase();
+    const dayNum = matchDate.getDate();
+    const monthNum = matchDate.getMonth() + 1;
+    return `${dayName} ${dayNum}/${monthNum} ${timeStr}`;
+  }
+}
 </script>
 
 <template>
@@ -252,7 +293,7 @@ const prizeCategories = computed(() => {
               v-else
               class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-slate-950 font-mono animate-pulse"
             >
-              EN JUEGO HOY 21:00h
+              {{ getMatchScheduleLabel(p, jornada.fechaCierre) }}
             </span>
           </div>
 

@@ -48,6 +48,7 @@ interface Partido {
   numeroCasilla: number;
   equipoLocal: string;
   equipoVisitante: string;
+  fechaHora?: string | null;
   golesLocal?: number | null;
   golesVisitante?: number | null;
   resultadoSigno?: string | null;
@@ -223,6 +224,46 @@ function handleCopy() {
   emit('copyPronostico');
   copied.value = true;
   setTimeout(() => { copied.value = false; }, 2000);
+}
+
+function getMatchScheduleLabel(partido: Partido, jornadaFechaCierre?: string): string {
+  if (partido.resultadoSigno) {
+    return 'FINALIZADO';
+  }
+
+  const rawDate = partido.fechaHora || jornadaFechaCierre;
+  if (!rawDate) {
+    return 'Por disputar';
+  }
+
+  const matchDate = new Date(rawDate);
+  const now = new Date();
+
+  const matchDay = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round((matchDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  const hours = matchDate.getHours().toString().padStart(2, '0');
+  const minutes = matchDate.getMinutes().toString().padStart(2, '0');
+  const timeStr = `${hours}:${minutes}h`;
+
+  if (diffDays === 0) {
+    const diffHours = (now.getTime() - matchDate.getTime()) / (1000 * 60 * 60);
+    if (diffHours >= 0 && diffHours <= 2.5) {
+      return `En juego (${timeStr})`;
+    }
+    return `Hoy ${timeStr}`;
+  } else if (diffDays === 1) {
+    return `Mañana ${timeStr}`;
+  } else if (diffDays === -1) {
+    return `Ayer ${timeStr}`;
+  } else {
+    const dayName = matchDate.toLocaleDateString('es-ES', { weekday: 'short' });
+    const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    const dayNum = matchDate.getDate();
+    const monthNum = matchDate.getMonth() + 1;
+    return `${capitalizedDay} ${dayNum}/${monthNum} ${timeStr}`;
+  }
 }
 </script>
 
@@ -460,7 +501,7 @@ function handleCopy() {
 
               <div v-else class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1.5">
                 <Clock class="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-                <span>Por disputar</span>
+                <span>{{ getMatchScheduleLabel(partido, jornada.fechaCierre) }}</span>
               </div>
             </div>
           </div>
@@ -749,7 +790,7 @@ function handleCopy() {
                   <!-- INDICADOR DE PARTIDO PENDIENTE -->
                   <span v-else class="flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.2 rounded-md border border-amber-500/20 ml-1">
                     <Clock class="h-3 w-3 text-amber-400 animate-pulse" />
-                    <span>Por disputar (Hoy 21:00h)</span>
+                    <span>{{ getMatchScheduleLabel(partido, jornada.fechaCierre) }}</span>
                   </span>
 
                   <!-- Botón de acceso directo a la Pizarra Táctica -->

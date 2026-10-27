@@ -124,21 +124,21 @@ export async function seedSelae2026Season() {
   });
 
   const copaMatches = [
-    { num: 1, local: 'RSD Alcalá', away: 'UD Las Palmas', lae1: 10.0, laeX: 18.0, lae2: 72.0 },
-    { num: 2, local: 'CD Alcoyano', away: 'RCD Mallorca', lae1: 15.0, laeX: 25.0, lae2: 60.0 },
-    { num: 3, local: 'Arosa SC', away: 'Pontevedra CF', lae1: 28.0, laeX: 32.0, lae2: 40.0 },
-    { num: 4, local: 'Atlético Calatayud', away: 'CA Osasuna', lae1: 8.0, laeX: 14.0, lae2: 78.0 },
-    { num: 5, local: 'CD Badajoz', away: 'CD Tenerife', lae1: 18.0, laeX: 28.0, lae2: 54.0 },
-    { num: 6, local: 'CD Cieza', away: 'Granada CF', lae1: 12.0, laeX: 22.0, lae2: 66.0 },
-    { num: 7, local: 'UB Conquense', away: 'CD Castellón', lae1: 16.0, laeX: 26.0, lae2: 58.0 },
-    { num: 8, local: 'CD Covadonga', away: 'Real Valladolid', lae1: 10.0, laeX: 20.0, lae2: 70.0 },
-    { num: 9, local: 'Deportiva Minera', away: 'FC Cartagena', lae1: 22.0, laeX: 30.0, lae2: 48.0 },
-    { num: 10, local: 'CD Don Benito', away: 'Extremadura UD', lae1: 34.0, laeX: 33.0, lae2: 33.0 },
-    { num: 11, local: 'CD Laredo', away: 'Burgos CF', lae1: 14.0, laeX: 24.0, lae2: 62.0 },
-    { num: 12, local: 'CD Numancia', away: 'Real Oviedo', lae1: 25.0, laeX: 30.0, lae2: 45.0 },
-    { num: 13, local: 'CD Tudelano', away: 'Real Zaragoza', lae1: 18.0, laeX: 27.0, lae2: 55.0 },
-    { num: 14, local: 'Xerez CD', away: 'Cádiz CF', lae1: 20.0, laeX: 28.0, lae2: 52.0 },
-    { num: 15, local: 'Recreativo Huelva', away: 'Rayo Vallecano', lae1: 15.0, laeX: 25.0, lae2: 60.0 }
+    { num: 1, local: 'RSD Alcalá', away: 'UD Las Palmas', fechaHora: '2026-10-28T20:00:00Z', lae1: 10.0, laeX: 18.0, lae2: 72.0 },
+    { num: 2, local: 'CD Alcoyano', away: 'RCD Mallorca', fechaHora: '2026-10-29T18:00:00Z', lae1: 15.0, laeX: 25.0, lae2: 60.0 },
+    { num: 3, local: 'Arosa SC', away: 'Pontevedra CF', fechaHora: '2026-10-28T19:00:00Z', lae1: 28.0, laeX: 32.0, lae2: 40.0 },
+    { num: 4, local: 'Atlético Calatayud', away: 'CA Osasuna', fechaHora: '2026-10-28T18:00:00Z', lae1: 8.0, laeX: 14.0, lae2: 78.0 },
+    { num: 5, local: 'CD Badajoz', away: 'CD Tenerife', fechaHora: '2026-10-29T19:00:00Z', lae1: 18.0, laeX: 28.0, lae2: 54.0 },
+    { num: 6, local: 'CD Cieza', away: 'Granada CF', fechaHora: '2026-10-28T19:30:00Z', lae1: 12.0, laeX: 22.0, lae2: 66.0 },
+    { num: 7, local: 'UB Conquense', away: 'CD Castellón', fechaHora: '2026-10-29T19:00:00Z', lae1: 16.0, laeX: 26.0, lae2: 58.0 },
+    { num: 8, local: 'CD Covadonga', away: 'Real Valladolid', fechaHora: '2026-10-28T19:00:00Z', lae1: 10.0, laeX: 20.0, lae2: 70.0 },
+    { num: 9, local: 'Deportiva Minera', away: 'FC Cartagena', fechaHora: '2026-10-28T19:30:00Z', lae1: 22.0, laeX: 30.0, lae2: 48.0 },
+    { num: 10, local: 'CD Don Benito', away: 'Extremadura UD', fechaHora: '2026-10-28T19:00:00Z', lae1: 34.0, laeX: 33.0, lae2: 33.0 },
+    { num: 11, local: 'CD Laredo', away: 'Burgos CF', fechaHora: '2026-10-29T18:30:00Z', lae1: 14.0, laeX: 24.0, lae2: 62.0 },
+    { num: 12, local: 'CD Numancia', away: 'Real Oviedo', fechaHora: '2026-10-29T19:00:00Z', lae1: 25.0, laeX: 30.0, lae2: 45.0 },
+    { num: 13, local: 'CD Tudelano', away: 'Real Zaragoza', fechaHora: '2026-10-28T19:00:00Z', lae1: 18.0, laeX: 27.0, lae2: 55.0 },
+    { num: 14, local: 'Xerez CD', away: 'Cádiz CF', fechaHora: '2026-10-29T19:30:00Z', lae1: 20.0, laeX: 28.0, lae2: 52.0 },
+    { num: 15, local: 'Recreativo Huelva', away: 'Rayo Vallecano', fechaHora: '2026-10-29T20:00:00Z', lae1: 15.0, laeX: 25.0, lae2: 60.0 }
   ];
 
   for (const m of copaMatches) {
@@ -148,6 +148,7 @@ export async function seedSelae2026Season() {
         numeroCasilla: m.num,
         equipoLocal: m.local,
         equipoVisitante: m.away,
+        fechaHora: m.fechaHora ? new Date(m.fechaHora) : null,
         golesLocal: null,
         golesVisitante: null,
         resultadoSigno: null,

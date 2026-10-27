@@ -133,6 +133,7 @@ interface Partido {
   numeroCasilla: number;
   equipoLocal: string;
   equipoVisitante: string;
+  fechaHora?: string | null;
   golesLocal?: number | null;
   golesVisitante?: number | null;
   resultadoSigno?: string | null;
