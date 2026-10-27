@@ -511,7 +511,9 @@ function copyPronosticoToClipboard() {
 async function syncLiveQuiniela() {
   syncingLive.value = true;
   try {
-    const { data } = await axios.post('/api/jornadas/sync-live');
+    const { data } = await axios.post('/api/jornadas/sync-live', {
+      jornadaId: selectedJornadaId.value || undefined
+    });
     if (data.jornada) {
       jornada.value = data.jornada;
       selectedJornadaId.value = data.jornada.id;

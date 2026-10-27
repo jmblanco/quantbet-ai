@@ -193,6 +193,26 @@ export async function registerRoutes(app: FastifyInstance) {
     });
 
     if (!jornada) {
+      // Si no hay ninguna en juego, priorizar la última jornada oficial con escrutinio (Jornada 16)
+      jornada = await prisma.jornada.findFirst({
+        where: {
+          temporada: { activa: true },
+          numero: 16
+        },
+        include: {
+          temporada: true,
+          juego: true,
+          partidos: {
+            orderBy: { numeroCasilla: 'asc' },
+            include: {
+              predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+            }
+          }
+        }
+      });
+    }
+
+    if (!jornada) {
       jornada = await prisma.jornada.findFirst({
         where: {
           temporada: { activa: true },
@@ -247,20 +267,64 @@ export async function registerRoutes(app: FastifyInstance) {
     await syncLiveQuiniela();
     await valkey.del('cache:jornadas:list');
 
-    const jornada = await prisma.jornada.findFirst({
-      where: { estado: { in: ['PROGRAMADA', 'EN_JUEGO'] } },
-      orderBy: { fechaCierre: 'desc' },
-      include: {
-        temporada: true,
-        juego: true,
-        partidos: {
-          orderBy: { numeroCasilla: 'asc' },
-          include: {
-            predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+    const body = (req.body as { jornadaId?: string } | undefined) ?? {};
+    let jornada = null;
+
+    if (body.jornadaId) {
+      jornada = await prisma.jornada.findUnique({
+        where: { id: body.jornadaId },
+        include: {
+          temporada: true,
+          juego: true,
+          partidos: {
+            orderBy: { numeroCasilla: 'asc' },
+            include: {
+              predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+            }
           }
         }
-      }
-    });
+      });
+    }
+
+    if (!jornada) {
+      jornada = await prisma.jornada.findFirst({
+        where: {
+          temporada: { activa: true },
+          OR: [
+            { estado: 'EN_JUEGO' },
+            { numero: 16 }
+          ]
+        },
+        orderBy: { numero: 'desc' },
+        include: {
+          temporada: true,
+          juego: true,
+          partidos: {
+            orderBy: { numeroCasilla: 'asc' },
+            include: {
+              predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+            }
+          }
+        }
+      });
+    }
+
+    if (!jornada) {
+      jornada = await prisma.jornada.findFirst({
+        where: { estado: { in: ['PROGRAMADA', 'EN_JUEGO', 'FINALIZADA'] } },
+        orderBy: { fechaCierre: 'desc' },
+        include: {
+          temporada: true,
+          juego: true,
+          partidos: {
+            orderBy: { numeroCasilla: 'asc' },
+            include: {
+              predicciones: { orderBy: { createdAt: 'desc' }, take: 1 }
+            }
+          }
+        }
+      });
+    }
 
     return reply.send({
       message: 'Jornada en curso sincronizada con éxito',

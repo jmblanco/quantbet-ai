@@ -424,7 +424,15 @@ function handleCopy() {
                 <span class="text-[10px] text-slate-500 block uppercase font-mono font-bold">Resultado</span>
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-black text-white font-mono">
-                    {{ partido.golesLocal ?? '-' }} - {{ partido.golesVisitante ?? '-' }}
+                    <template v-if="partido.golesLocal !== null && partido.golesLocal !== undefined && partido.golesVisitante !== null && partido.golesVisitante !== undefined">
+                      {{ partido.golesLocal }} - {{ partido.golesVisitante }}
+                    </template>
+                    <template v-else-if="partido.resultadoSigno && partido.resultadoSigno.includes('-')">
+                      {{ partido.resultadoSigno }}
+                    </template>
+                    <template v-else>
+                      - - -
+                    </template>
                   </span>
                   <span class="px-2 py-0.5 rounded-lg text-xs font-black bg-slate-900 border border-slate-700 text-amber-400 font-mono">
                     {{ partido.resultadoSigno }}

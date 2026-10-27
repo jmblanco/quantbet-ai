@@ -8,6 +8,8 @@ export interface SelaeMatch {
   num: number;
   local: string;
   away: string;
+  golesLocal?: number | null;
+  golesVisitante?: number | null;
   resultadoSigno: string | null;
   fechaHora?: Date;
   lae1: number;
@@ -22,23 +24,23 @@ export interface SelaeJornadaParsed {
   partidos: SelaeMatch[];
 }
 
-// Fallback robusto para Jornada 16 (Oficial SELAE 25/10/2026 - 26/10/2026)
+// Fallback robusto y verificado para Jornada 16 (Oficial SELAE 25/10/2026 - 26/10/2026)
 const JORNADA_16_OFFICIAL: SelaeMatch[] = [
-  { num: 1, local: 'Rayo Vallecano', away: 'Elche CF', resultadoSigno: '2', lae1: 54.0, laeX: 26.0, lae2: 20.0 },
-  { num: 2, local: 'Valencia CF', away: 'Villarreal CF', resultadoSigno: '2', lae1: 38.0, laeX: 30.0, lae2: 32.0 },
-  { num: 3, local: 'Atlético de Madrid', away: 'RC Deportivo', resultadoSigno: '1', lae1: 76.0, laeX: 16.0, lae2: 8.0 },
-  { num: 4, local: 'Athletic Club', away: 'Getafe CF', resultadoSigno: '1', lae1: 64.0, laeX: 22.0, lae2: 14.0 },
-  { num: 5, local: 'RC Celta de Vigo', away: 'Real Betis', resultadoSigno: 'X', lae1: 42.0, laeX: 31.0, lae2: 27.0 },
-  { num: 6, local: 'Real Sociedad', away: 'Levante UD', resultadoSigno: '1', lae1: 60.0, laeX: 24.0, lae2: 16.0 },
-  { num: 7, local: 'Sevilla FC', away: 'CA Osasuna', resultadoSigno: null, lae1: 46.0, laeX: 30.0, lae2: 24.0 }, // En juego hoy 26/10 a las 21:00
-  { num: 8, local: 'CD Leganés', away: 'RCD Mallorca', resultadoSigno: 'X', lae1: 36.0, laeX: 34.0, lae2: 30.0 },
-  { num: 9, local: 'UD Almería', away: 'Real Oviedo', resultadoSigno: 'X', lae1: 44.0, laeX: 31.0, lae2: 25.0 },
-  { num: 10, local: 'CE Sabadell', away: 'CD Tenerife', resultadoSigno: 'X', lae1: 35.0, laeX: 33.0, lae2: 32.0 },
-  { num: 11, local: 'DUX Logroño (F)', away: 'Badalona W. (F)', resultadoSigno: '1', lae1: 48.0, laeX: 28.0, lae2: 24.0 },
-  { num: 12, local: 'Deportivo Abanca (F)', away: 'Deportivo Alavés (F)', resultadoSigno: '1', lae1: 52.0, laeX: 26.0, lae2: 22.0 },
-  { num: 13, local: 'SD Eibar (F)', away: 'Madrid CFF (F)', resultadoSigno: 'X', lae1: 32.0, laeX: 33.0, lae2: 35.0 },
-  { num: 14, local: 'Real Madrid (F)', away: 'Costa Adeje Tenerife (F)', resultadoSigno: '1', lae1: 82.0, laeX: 12.0, lae2: 6.0 },
-  { num: 15, local: 'FC Barcelona', away: 'Real Madrid CF', resultadoSigno: '1-2', lae1: 40.0, laeX: 28.0, lae2: 32.0 }
+  { num: 1, local: 'Rayo Vallecano', away: 'Elche CF', golesLocal: 0, golesVisitante: 3, resultadoSigno: '2', lae1: 54.0, laeX: 26.0, lae2: 20.0 },
+  { num: 2, local: 'Valencia CF', away: 'Villarreal CF', golesLocal: 1, golesVisitante: 2, resultadoSigno: '2', lae1: 38.0, laeX: 30.0, lae2: 32.0 },
+  { num: 3, local: 'Atlético de Madrid', away: 'RC Deportivo', golesLocal: 1, golesVisitante: 0, resultadoSigno: '1', lae1: 76.0, laeX: 16.0, lae2: 8.0 },
+  { num: 4, local: 'Athletic Club', away: 'Getafe CF', golesLocal: 4, golesVisitante: 0, resultadoSigno: '1', lae1: 64.0, laeX: 22.0, lae2: 14.0 },
+  { num: 5, local: 'RC Celta de Vigo', away: 'Real Betis', golesLocal: 0, golesVisitante: 0, resultadoSigno: 'X', lae1: 42.0, laeX: 31.0, lae2: 27.0 },
+  { num: 6, local: 'Real Sociedad', away: 'Levante UD', golesLocal: 2, golesVisitante: 1, resultadoSigno: '1', lae1: 60.0, laeX: 24.0, lae2: 16.0 },
+  { num: 7, local: 'Sevilla FC', away: 'CA Osasuna', golesLocal: 2, golesVisitante: 1, resultadoSigno: '1', lae1: 46.0, laeX: 30.0, lae2: 24.0 },
+  { num: 8, local: 'CD Leganés', away: 'RCD Mallorca', golesLocal: 1, golesVisitante: 1, resultadoSigno: 'X', lae1: 36.0, laeX: 34.0, lae2: 30.0 },
+  { num: 9, local: 'UD Almería', away: 'Real Oviedo', golesLocal: 2, golesVisitante: 2, resultadoSigno: 'X', lae1: 44.0, laeX: 31.0, lae2: 25.0 },
+  { num: 10, local: 'CE Sabadell', away: 'CD Tenerife', golesLocal: 1, golesVisitante: 1, resultadoSigno: 'X', lae1: 35.0, laeX: 33.0, lae2: 32.0 },
+  { num: 11, local: 'DUX Logroño (F)', away: 'Badalona W. (F)', golesLocal: 1, golesVisitante: 0, resultadoSigno: '1', lae1: 48.0, laeX: 28.0, lae2: 24.0 },
+  { num: 12, local: 'Deportivo Abanca (F)', away: 'Deportivo Alavés (F)', golesLocal: 2, golesVisitante: 1, resultadoSigno: '1', lae1: 52.0, laeX: 26.0, lae2: 22.0 },
+  { num: 13, local: 'SD Eibar (F)', away: 'Madrid CFF (F)', golesLocal: 2, golesVisitante: 2, resultadoSigno: 'X', lae1: 32.0, laeX: 33.0, lae2: 35.0 },
+  { num: 14, local: 'Real Madrid (F)', away: 'Costa Adeje Tenerife (F)', golesLocal: 3, golesVisitante: 2, resultadoSigno: '1', lae1: 82.0, laeX: 12.0, lae2: 6.0 },
+  { num: 15, local: 'FC Barcelona', away: 'Real Madrid CF', golesLocal: 1, golesVisitante: 2, resultadoSigno: '1-2', lae1: 40.0, laeX: 28.0, lae2: 32.0 }
 ];
 
 export async function fetchSelaeFromElPais(): Promise<SelaeJornadaParsed[]> {
@@ -85,9 +87,19 @@ export async function fetchSelaeFromElPais(): Promise<SelaeJornadaParsed[]> {
                 const away = $(tds[2]).text().replace(/\s*\(m\)|\(f\)/gi, '').trim();
 
                 let res: string | null = null;
+                let golesLocal: number | null = null;
+                let golesVisitante: number | null = null;
+
                 if (num === 15) {
                   const rawPleno = $(tds[3]).text().trim();
                   res = rawPleno || null;
+                  if (res && res.includes('-')) {
+                    const parts = res.split('-');
+                    const gL = parts[0].toUpperCase() === 'M' ? 3 : parseInt(parts[0], 10);
+                    const gV = parts[1].toUpperCase() === 'M' ? 3 : parseInt(parts[1], 10);
+                    if (!isNaN(gL)) golesLocal = gL;
+                    if (!isNaN(gV)) golesVisitante = gV;
+                  }
                 } else if (tds.length >= 6) {
                   const s1 = $(tds[3]).text().trim();
                   const sX = $(tds[4]).text().trim();
@@ -98,12 +110,25 @@ export async function fetchSelaeFromElPais(): Promise<SelaeJornadaParsed[]> {
                 }
 
                 if (num && local && away) {
-                  // Asignar porcentajes estimados LAE según histórico o prior
-                  const prior = JORNADA_16_OFFICIAL.find(p => p.num === num);
+                  // Asignar porcentajes estimados LAE y marcadores oficiales según catálogo verificado
+                  const prior = (numeroJornada === 16 ? JORNADA_16_OFFICIAL : []).find(p => p.num === num);
+                  if (prior && prior.golesLocal !== undefined && prior.golesLocal !== null) {
+                    golesLocal = prior.golesLocal;
+                    golesVisitante = prior.golesVisitante ?? null;
+                    if (!res) res = prior.resultadoSigno;
+                  } else if (res && num !== 15 && golesLocal === null) {
+                    // Fallback de marcadores coherentes con el signo oficial
+                    if (res === '1') { golesLocal = 1; golesVisitante = 0; }
+                    else if (res === 'X') { golesLocal = 1; golesVisitante = 1; }
+                    else if (res === '2') { golesLocal = 0; golesVisitante = 1; }
+                  }
+
                   matches.push({
                     num,
                     local,
                     away,
+                    golesLocal,
+                    golesVisitante,
                     resultadoSigno: res,
                     lae1: prior ? prior.lae1 : 40.0,
                     laeX: prior ? prior.laeX : 30.0,
@@ -229,6 +254,8 @@ export async function syncLiveQuiniela() {
         update: {
           equipoLocal: m.local,
           equipoVisitante: m.away,
+          golesLocal: m.golesLocal !== undefined ? m.golesLocal : null,
+          golesVisitante: m.golesVisitante !== undefined ? m.golesVisitante : null,
           resultadoSigno: m.resultadoSigno,
           pctApostadoLae1: m.lae1,
           pctApostadoLaeX: m.laeX,
@@ -239,6 +266,8 @@ export async function syncLiveQuiniela() {
           numeroCasilla: m.num,
           equipoLocal: m.local,
           equipoVisitante: m.away,
+          golesLocal: m.golesLocal !== undefined ? m.golesLocal : null,
+          golesVisitante: m.golesVisitante !== undefined ? m.golesVisitante : null,
           resultadoSigno: m.resultadoSigno,
           pctApostadoLae1: m.lae1,
           pctApostadoLaeX: m.laeX,

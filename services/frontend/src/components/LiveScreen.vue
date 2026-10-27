@@ -258,8 +258,14 @@ const prizeCategories = computed(() => {
 
           <div class="flex items-center justify-between text-sm font-bold text-white my-1">
             <span class="truncate">{{ p.equipoLocal }}</span>
-            <span v-if="p.golesLocal !== null && p.golesVisitante !== null" class="font-mono text-base px-2 text-emerald-400">
+            <span v-if="p.golesLocal !== null && p.golesLocal !== undefined && p.golesVisitante !== null && p.golesVisitante !== undefined" class="font-mono text-base px-2 text-emerald-400 font-black">
               {{ p.golesLocal }} - {{ p.golesVisitante }}
+            </span>
+            <span v-else-if="p.resultadoSigno && p.resultadoSigno.includes('-')" class="font-mono text-base px-2 text-emerald-400 font-black">
+              {{ p.resultadoSigno }}
+            </span>
+            <span v-else-if="p.resultadoSigno" class="font-mono text-xs px-2 text-emerald-400 font-bold">
+              [ {{ p.resultadoSigno }} ]
             </span>
             <span v-else class="text-xs text-amber-400 font-mono px-2">vs</span>
             <span class="truncate text-right">{{ p.equipoVisitante }}</span>
