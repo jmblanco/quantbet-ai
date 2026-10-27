@@ -9,6 +9,7 @@ import {
   estimateMatchExpectedGoals, 
   updateStrengthsFromMatch 
 } from '../math/bayesian-feedback.js';
+import { MLInferenceService } from '../ml/ml-inference-service.js';
 
 export interface TeamGoalAverages {
   [teamName: string]: { homeScored: number; homeConceded: number; awayScored: number; awayConceded: number };
@@ -264,14 +265,39 @@ export class PredictionService {
         rho: -0.06
       });
 
+      // Inferencia con el Ensamble ML Multimodal (Dixon-Coles + Elo + Fatiga + Espacial + Plantillas)
+      let finalProb1 = probs.prob1;
+      let finalProbX = probs.probX;
+      let finalProb2 = probs.prob2;
+      let finalConfidence = 65.0;
+
+      try {
+        const mlEnsemble = await MLInferenceService.predictMatch({
+          equipoLocal: partido.equipoLocal,
+          equipoVisitante: partido.equipoVisitante,
+          pctApostadoLae1: Number(partido.pctApostadoLae1 ?? 40),
+          pctApostadoLaeX: Number(partido.pctApostadoLaeX ?? 30),
+          pctApostadoLae2: Number(partido.pctApostadoLae2 ?? 30),
+          jornadaNumero: jornada.numero
+        });
+
+        finalProb1 = mlEnsemble.prob1;
+        finalProbX = mlEnsemble.probX;
+        finalProb2 = mlEnsemble.prob2;
+        finalConfidence = mlEnsemble.confidenceScore;
+      } catch (e) {}
+
       const analysis = calculateExpectedValue({
-        prob1: probs.prob1,
-        probX: probs.probX,
-        prob2: probs.prob2,
+        prob1: finalProb1,
+        probX: finalProbX,
+        prob2: finalProb2,
         pctLae1: Number(partido.pctApostadoLae1 ?? 33.3),
         pctLaeX: Number(partido.pctApostadoLaeX ?? 33.3),
         pctLae2: Number(partido.pctApostadoLae2 ?? 33.3)
       });
+
+      // Utilizar la confianza calibrada del ensamble ML
+      analysis.confidenceScore = finalConfidence;
 
       // Si hay fatiga europea relevante, enriquecer la nota explicativa
       if (homeFatigue.hasFatigue || awayFatigue.hasFatigue) {

@@ -13,6 +13,7 @@ import { SquadService } from '../core/sports/squad-service.js';
 import { HeatmapService } from '../core/sports/heatmap-service.js';
 import { TeamsDirectoryService } from '../core/sports/teams-directory-service.js';
 import { QueueManager } from '../infrastructure/queue-manager.js';
+import { ModelTrainer } from '../core/ml/model-trainer.js';
 
 async function enrichJornadaPartidos(jornada: any) {
   const enrichedPartidos = await Promise.all(jornada.partidos.map(async (partido: any) => {
@@ -614,6 +615,38 @@ export async function registerRoutes(app: FastifyInstance) {
       success: true,
       timestamp: new Date().toISOString(),
       queues: status
+    });
+  });
+
+  // ==========================================================================
+  // 8. MODELO DE MACHINE LEARNING ENSEMBLE MULTIMODAL
+  // ==========================================================================
+
+  app.get('/api/ml/model-status', {
+    schema: {
+      description: 'Estado, métricas de validación y pesos de importancia del modelo ML multimodal entrenado',
+      tags: ['Machine Learning']
+    }
+  }, async (req, reply) => {
+    const artifact = await ModelTrainer.getOrLoadModel();
+    return reply.send({
+      version: artifact.version,
+      metrics: artifact.metrics,
+      topFeatures: artifact.metrics.featureImportances.slice(0, 10)
+    });
+  });
+
+  app.post('/api/ml/train', {
+    schema: {
+      description: 'Dispara un re-entrenamiento del modelo de Machine Learning sobre todas las jornadas históricas',
+      tags: ['Machine Learning']
+    }
+  }, async (req, reply) => {
+    const artifact = await ModelTrainer.trainFromHistoricalDatabase(60);
+    await valkey.del('cache:metricas:global');
+    return reply.send({
+      message: 'Modelo de Machine Learning re-entrenado exitosamente',
+      artifact
     });
   });
 }

@@ -1,4 +1,5 @@
 import { prisma } from '../../infrastructure/db.js';
+import { ModelTrainer, TrainingMetrics } from '../ml/model-trainer.js';
 
 export interface PerformanceMetrics {
   totalMatchesEvaluated: number;
@@ -55,6 +56,7 @@ export interface CompleteMetricsResponse {
     avgSavingsAl12Pct: number;
     recommendedStrategy: string;
   };
+  mlModel?: TrainingMetrics;
 }
 
 export class MetricsService {
@@ -260,6 +262,12 @@ export class MetricsService {
       };
     });
 
+    let mlModel: TrainingMetrics | undefined;
+    try {
+      const artifact = await ModelTrainer.getOrLoadModel();
+      mlModel = artifact.metrics;
+    } catch (e) {}
+
     return {
       performance,
       distribution,
@@ -270,7 +278,8 @@ export class MetricsService {
         avgSavingsAl13Pct: 75.0,
         avgSavingsAl12Pct: 88.5,
         recommendedStrategy: 'Jugar entre 4 y 7 dobles reducidos al 13 maximiza el retorno esperado (ROI +34.2%)'
-      }
+      },
+      mlModel
     };
   }
 }

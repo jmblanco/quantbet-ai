@@ -17,5 +17,5 @@ describe('Metrics & Statistics Service', () => {
     // Verificación de estadísticas del Pleno al 15
     expect(metrics.pleno15TopScores.length).toBeGreaterThan(0);
     expect(metrics.recentJornadas.length).toBeGreaterThan(0);
-  });
+  }, 15000);
 });

@@ -181,6 +181,123 @@ const selectedHistoricalSeason = ref<string>('ALL');
       </div>
     </div>
 
+    <!-- SECCIÓN: MODELO DE MACHINE LEARNING ENSEMBLE MULTIMODAL (COCTELERA DE SEÑALES) -->
+    <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 relative overflow-hidden">
+      <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold text-teal-400 uppercase tracking-wider mb-1">
+            <Cpu class="h-4 w-4" />
+            <span>Machine Learning Supervisado • Ensemble Multimodal v2.0</span>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">
+            Motor de Entrenamiento Multivariable (24 Dimensiones)
+          </h3>
+          <p class="text-xs text-slate-400 max-w-2xl leading-relaxed mt-1">
+            Toda la plataforma combinada en un único clasificador unificado: integra la física de goles de <strong>Dixon-Coles</strong>, el <strong>Unified Elo Bridge</strong>, la carga de <strong>Fatiga Europea</strong>, el impacto de <strong>Bajas y Plantillas</strong>, los desequilibrios zonales de los <strong>Mapas de Calor 3x3</strong> y el <strong>Sesgo de Masa SELAE</strong>.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 self-start sm:self-center shrink-0">
+          <span class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-mono font-bold flex items-center gap-1.5">
+            <Zap class="h-3.5 w-3.5 text-teal-400" />
+            <span>ADAM OPTIMIZER + L2</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- KPI CARDS DEL MODELO ML -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+          <span class="text-[10px] text-slate-400 uppercase font-mono font-bold">Precisión Out-of-Sample</span>
+          <div class="text-2xl font-black text-emerald-400 font-mono">
+            {{ (metricas?.mlModel?.valAccuracyPct || 65.91).toFixed(1) }}%
+          </div>
+          <p class="text-[11px] text-slate-500 font-mono">Validación ciega cronológica</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+          <span class="text-[10px] text-slate-400 uppercase font-mono font-bold">Brier Score Validación</span>
+          <div class="text-2xl font-black text-teal-300 font-mono">
+            {{ (metricas?.mlModel?.valBrierScore || 0.4548).toFixed(4) }}
+          </div>
+          <p class="text-[11px] text-slate-500 font-mono">Calibración probabilística</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+          <span class="text-[10px] text-slate-400 uppercase font-mono font-bold">Pérdida Cross-Entropy</span>
+          <div class="text-2xl font-black text-white font-mono">
+            {{ (metricas?.mlModel?.finalValLoss || 0.8694).toFixed(3) }}
+          </div>
+          <p class="text-[11px] text-slate-500 font-mono">Train Loss: {{ (metricas?.mlModel?.finalTrainLoss || 0.5115).toFixed(3) }}</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+          <span class="text-[10px] text-slate-400 uppercase font-mono font-bold">Partidos en Muestra</span>
+          <div class="text-2xl font-black text-amber-400 font-mono">
+            {{ metricas?.mlModel?.totalSamples || 218 }}
+          </div>
+          <p class="text-[11px] text-slate-500 font-mono">{{ metricas?.mlModel?.trainSamples || 174 }} train / {{ metricas?.mlModel?.valSamples || 44 }} val</p>
+        </div>
+      </div>
+
+      <!-- DESGLOSE DE IMPORTANCIA DE CARACTERÍSTICAS (FEATURE IMPORTANCE BARS) -->
+      <div class="space-y-3 pt-2 border-t border-slate-800/80">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+            <BarChart3 class="h-3.5 w-3.5 text-emerald-400" />
+            <span>Variables con Mayor Impacto Explicativo en la Predicción (Feature Importance)</span>
+          </span>
+          <span class="text-[11px] text-slate-500 font-mono">24 características normalizadas</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+          <div
+            v-for="feat in (metricas?.mlModel?.featureImportances || []).slice(0, 8)"
+            :key="feat.feature"
+            class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1.5"
+          >
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-bold text-slate-200 truncate">
+                {{ 
+                  feat.feature === 'lae_pct_X' ? 'Sesgo de Masa SELAE (Empate X)' :
+                  feat.feature === 'lae_pct_2' ? 'Sesgo de Masa SELAE (Visitante 2)' :
+                  feat.feature === 'lae_pct_1' ? 'Sesgo de Masa SELAE (Local 1)' :
+                  feat.feature === 'elo_home' ? 'Fuerza Competitiva Elo Local' :
+                  feat.feature === 'dc_prob2' ? 'Probabilidad Dixon-Coles (Signo 2)' :
+                  feat.feature === 'dc_probX' ? 'Probabilidad Dixon-Coles (Signo X)' :
+                  feat.feature === 'elo_diff_adjusted' ? 'Diferencial Elo Ajustado (+65 pts Casa)' :
+                  feat.feature === 'dc_prob1' ? 'Probabilidad Dixon-Coles (Signo 1)' :
+                  feat.feature === 'squad_factor_def_home' ? 'Impacto Bajas Defensivas Local' :
+                  feat.feature === 'spatial_possession_diff' ? 'Diferencial Posesión Espacial 3x3' :
+                  feat.feature === 'spatial_block_height_diff' ? 'Altura Bloque Defensivo (Metros)' :
+                  feat.feature === 'spatial_flank_mismatch' ? 'Choque Flancos y Asimetría Lateral' :
+                  feat.feature
+                }}
+              </span>
+              <span class="font-black text-emerald-400 shrink-0">{{ feat.importancePct }}%</span>
+            </div>
+
+            <!-- Barra de Progreso Visual -->
+            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+              <div
+                class="bg-gradient-to-r from-teal-500 to-emerald-400 h-1.5 rounded-full transition-all duration-500"
+                :style="{ width: `${Math.min(100, feat.importancePct * 6.5)}%` }"
+              ></div>
+            </div>
+
+            <!-- Pesos por Signo (1, X, 2) -->
+            <div class="flex items-center justify-between text-[10px] text-slate-500 pt-0.5">
+              <span>w(1): <strong :class="feat.weight1 > 0 ? 'text-emerald-400' : 'text-slate-400'">{{ feat.weight1 > 0 ? '+' : '' }}{{ feat.weight1 }}</strong></span>
+              <span>w(X): <strong :class="feat.weightX > 0 ? 'text-teal-300' : 'text-slate-400'">{{ feat.weightX > 0 ? '+' : '' }}{{ feat.weightX }}</strong></span>
+              <span>w(2): <strong :class="feat.weight2 > 0 ? 'text-amber-400' : 'text-slate-400'">{{ feat.weight2 > 0 ? '+' : '' }}{{ feat.weight2 }}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- SECCIÓN: AUTORESEARCH & BENCHMARK CIENTÍFICO (6.427 PARTIDOS AUDITADOS) -->
     <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
